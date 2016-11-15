@@ -1,0 +1,18 @@
+almog, nivpgir
+===============================================================================
+Almog Bar-shalom, ID 308174788, almog.bar-shalom@mail.huji.ac.il
+Niv Pagir, ID 305328692, Niv.Pagir@mail.huji.ac.il
+===============================================================================
+
+                           Project 01 - Logic Gates 
+                           ----------------------- 
+  
+
+Submitted Files
+---------------
+README - This file.
+And.hdl - The And chip.
+
+Remarks
+-------
+* The chip was actually implemented by simply using an Or chip. cool!
