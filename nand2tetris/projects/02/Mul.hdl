@@ -1,0 +1,54 @@
+CHIP Mul{
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+    ShiftLeft(in = a, out = m1);
+    ShiftLeft(in = m1, out = m2);
+    ShiftLeft(in = m2, out = m3);
+    ShiftLeft(in = m3, out = m4);
+    ShiftLeft(in = m4, out = m5);
+    ShiftLeft(in = m5, out = m6);
+    ShiftLeft(in = m6, out = m7);
+    ShiftLeft(in = m7, out = m8);
+    ShiftLeft(in = m8, out = m9);
+    ShiftLeft(in = m9, out = m10);
+    ShiftLeft(in = m10, out = m11);
+    ShiftLeft(in = m11, out = m12);
+    ShiftLeft(in = m12, out = m13);
+    ShiftLeft(in = m13, out = m14);
+    ShiftLeft(in = m14, out = m15);
+
+    Mux16(a[0..15] = false, b = a, sel = b[0], out = add0);
+    Mux16(a[0..15] = false, b = m1, sel = b[1], out = add1);
+    Mux16(a[0..15] = false, b = m2, sel = b[2], out = add2);
+    Mux16(a[0..15] = false, b = m3, sel = b[3], out = add3);
+    Mux16(a[0..15] = false, b = m4, sel = b[4], out = add4);
+    Mux16(a[0..15] = false, b = m5, sel = b[5], out = add5);
+    Mux16(a[0..15] = false, b = m6, sel = b[6], out = add6);
+    Mux16(a[0..15] = false, b = m7, sel = b[7], out = add7);
+    Mux16(a[0..15] = false, b = m8, sel = b[8], out = add8);
+    Mux16(a[0..15] = false, b = m9, sel = b[9], out = add9);
+    Mux16(a[0..15] = false, b = m10, sel = b[10], out = add10);
+    Mux16(a[0..15] = false, b = m11, sel = b[11], out = add11);
+    Mux16(a[0..15] = false, b = m12, sel = b[12], out = add12);
+    Mux16(a[0..15] = false, b = m13, sel = b[13], out = add13);
+    Mux16(a[0..15] = false, b = m14, sel = b[14], out = add14);
+    Mux16(a[0..15] = false, b = m15, sel = b[15], out = add15);
+
+    Add16(a = add0, b = add1, out = temp1);
+    Add16(a = temp1, b = add2, out = temp2);
+    Add16(a = temp2, b = add3, out = temp3);
+    Add16(a = temp3, b = add4, out = temp4);
+    Add16(a = temp4, b = add5, out = temp5);
+    Add16(a = temp5, b = add6, out = temp6);
+    Add16(a = temp6, b = add7, out = temp7);
+    Add16(a = temp7, b = add8, out = temp8);
+    Add16(a = temp8, b = add9, out = temp9);
+    Add16(a = temp9, b = add10, out = temp10);
+    Add16(a = temp10, b = add11, out = temp11);
+    Add16(a = temp11, b = add12, out = temp12);
+    Add16(a = temp12, b = add13, out = temp13);
+    Add16(a = temp13, b = add14, out = temp14);
+    Add16(a = temp14, b = add15, out = out);
+}
