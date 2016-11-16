@@ -1,0 +1,33 @@
+almog, nivpgir
+===============================================================================
+Almog Bar-shalom, ID 308174788, almog.bar-shalom@mail.huji.ac.il
+Niv Pagir, ID 305328692, Niv.Pagir@mail.huji.ac.il
+===============================================================================
+
+                           Project 02 - Boolean Arithmetic
+                           -------------------------------
+  
+
+Submitted Files
+---------------
+README - This file.
+README - This file
+HalfAdder.hdl - Half-Adder chip (adds 2 bits)
+FullAdder.hdl - Full-Adder chip (adds 3 bits)
+Add16.hdl - 16-bit Adder chip (adds two 16-bit numbers)
+Inc16.hdl - Incrementer chip
+ALU.hdl - The Arithmetic Logic Unit chip
+ShiftLeft.hdl - 16-bit Shift Left chip
+ShiftRight.hdl - 16-bit Shift Right chip
+Mul.hdl - 16-bit Multiplication chip (multiplies two 16-bit numbers) 
+
+
+Remarks
+-------
+The chips are implemented according to the instructions
+in the course book, chapter 2.
+Some chip reuse in this project:
+The Inc16 chip uses a single Add16 chip.
+The ShiftLeft chip uses a single Add16 chip.
+The ShiftRight uses a two Not16 chips,
+and the Mul chip uses "long multiplication" method.
