@@ -1,0 +1,9 @@
+CHIP ShiftRight{
+     IN in[16];
+     OUT out[16];
+     
+     PARTS:
+     Not16(in = in, out[1..15] = temp, out[15] = sign);
+     Not16(in[15] = sign, in[0..14] = temp, out = out);
+
+}
