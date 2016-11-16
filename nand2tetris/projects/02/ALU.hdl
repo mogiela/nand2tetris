@@ -42,22 +42,22 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-	Mux16(a = x, b = false, sel = zx, out = zerx);
-	Mux16(a = y, b = false, sel = zy, out = zery);
-	Not16(in = x, out = negx);
-	Not16(in = y, out = negy);
-	Mux16(a = x, b = negx, sel = nx, out = finx);
-	Mux16(a = y, b = negy, sel = ny, out = finy);
+	Mux16(a = x, b[0..15] = false, sel = zx, out = zerx);
+	Mux16(a = y, b[0..15] = false, sel = zy, out = zery);
+	Not16(in = zerx, out = negx);
+	Not16(in = zery, out = negy);
+	Mux16(a = zerx, b = negx, sel = nx, out = finx);
+	Mux16(a = zery, b = negy, sel = ny, out = finy);
 	And16(a = finx, b = finy, out = andout);
 	Add16(a = finx, b = finy, out = addout);
-	Mux16(a = andout, b = addout, out = normout);
-	Not16(in = normout, out = nout);
-	Mux16(a = normout, b = nout, sel = no, out = out, out[15] = ng);
+	Mux16(a = andout, b = addout, sel = f, out = normout);
+	Not16(in = normout, out = negout);
+	Mux16(a = normout, b = negout, sel = no, out = out, out[15] = ng, out[0..7] = out1, out[8..15] = out2);
 
 	//zr
 	
-	Or8Way(in = out[0..7], out = zr1);
-	Or8Way(in = out[8..15], out = zr2);
+	Or8Way(in = out1, out = zr1);
+	Or8Way(in = out2, out = zr2);
 	Or(a = zr1, b = zr2, out = nzr);
 	Not(in = nzr, out = zr);
 	
