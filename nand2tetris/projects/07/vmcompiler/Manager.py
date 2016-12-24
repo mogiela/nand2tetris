@@ -11,7 +11,6 @@ def Manage(filesList, outputPath):
     writeObj = Writer(outputPath)
     for file in filesList:
         parsObj = Parser(file)
-        parsObj.commentStart()
         writeObj.setfileName(os.path.splitext(os.path.basename(file))[0])
         while not parsObj.isEOF:
             parsObj.nextLine()
