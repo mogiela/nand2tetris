@@ -1,0 +1,20 @@
+
+push constant -30000
+push constant -30000
+lt
+
+
+
+
+
+@30000
+D = A
+@RfReg
+M=D
+M=M-D
+M=M-D
+D=A
+
+@0
+A=A-D
+D=A
