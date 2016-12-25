@@ -1,0 +1,19 @@
+
+push constant 17
+neg
+push constant 17
+eq
+
+pop local 0
+
+push constant 15
+push constant 16
+gt
+
+pop local 0
+
+push constant 18
+push constant 19
+lt
+
+pop local 0

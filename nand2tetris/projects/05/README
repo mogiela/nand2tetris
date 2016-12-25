@@ -1,0 +1,26 @@
+almog, nivpgir
+===============================================================================
+Almog Bar-shalom, ID 308174788, almog.bar-shalom@mail.huji.ac.il
+Niv Pagir, ID 305328692, Niv.Pagir@mail.huji.ac.il
+===============================================================================
+
+
+							Project 05 - Computer Architecture
+							----------------------------------
+
+Submitted Files
+---------------
+
+README - This file
+Memory.hdl - The complete address space of the Hack computer's memory
+CPU.hdl - The Hack CPU
+Computer.hdl - The HACK computer
+CpuMul.hdl - a CPU that uses the extended ALU chip
+ExtendAlu.hdl - Adds the multiply and shiftLeft/Right functions to the ALU
+
+
+
+Remarks
+-------
+The chips are implemented according to the instructions
+in the course book, and the moodle for chapter 5.
