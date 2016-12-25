@@ -75,7 +75,7 @@ class Writer:
                 "(CompSign" + str(self.labelCount) + ")\n"
                 "@a1\n"  # change a1 to sign
                 "D = M\n" + go2sp +
-                "M = D\n"
+                       "M = D\n"
                 "@a2\n"  # change a2 to sign
                 "D = M\n" + go2sp +
                 "A = A-1\nM = D\n"
@@ -106,15 +106,29 @@ class Writer:
                 self.file.write(reduSp + gotoPtr + "@" + self.fileName + "." + idx + "\nM = D\n")
 
             elif seg == "R3" or seg == "R5":
-                self.file.write("@" + seg + "\nD = A\n")
-                self.file.write("@" + str(idx) + "\nM = D\n")
+
+                self.file.write("@" + seg + "\n")# + "\nD = A\n") # A holds the address of beggining of the segment
+                self.file.write("D=A\n") # put seg beggining in D
+                self.file.write("@"+idx+"\n") # get idx
+                self.file.write("D=D+A\n") # put seg_beggining+idx in D
+                fReg = self.freeRegs.pop() # gets a free reg
+                self.file.write("@R" + fReg + "\nM = D\n") # put D in a free reg
+                #now we want to get the value we need from SP, and put it in D
+                #once we do that, all thats left is:
+                self.file.write(go2sp) # A is the adress of the (nonempty) top of the stack
+                self.file.write("D=M\n") # puts the value A points to in D
+                self.file.write("@R" + fReg + "\n") #@RfReg
+                self.file.write("A=M\n") #A is seg_beggining+idx (also the address in which we need to put our number, which is in D)
+                self.file.write("M=D\n") #D is safely in its place
+                self.file.write(reduSp);
+                self.freeRegs.append(fReg)
 
             else:
                 self.file.write("@" + seg + "\nD = M\n")
-                self.file.write("@" + str(idx) + "\nD = D+A\n")
+                self.file.write("@" + idx + "\nD = D+A\n")
                 fReg = self.freeRegs.pop()
                 self.file.write("@R" + fReg + "\nM = D\n")
-                self.file.write(reduSp + gotoPtr + "@R" + fReg + "\n" + gotoPtr)
+                self.file.write(reduSp + gotoPtr + "@R" + fReg + "\n" + "A=M\nM=D")
                 self.freeRegs.append(fReg)
 
         else:
@@ -139,13 +153,13 @@ class Writer:
 
             elif seg == "R3" or seg == "R5":
                 self.file.write("@" + seg + "\nD = A\n")
-                self.file.write("@" + str(idx) + "\nA =A+D\n")
+                self.file.write("@" + str(idx) + "\nA=A+D\n")
                 self.file.write("D = M\n" + d2spplusplus)
 
             else:
                 self.file.write("@" + seg + "\nD = M\n")
-                self.file.write("@" + str(idx) + "\nD =A+D\n")
-                self.file.write("A = D\nD = M\n@SP\n" + gotoPtr + "@SP\nM = M+1\n")
+                self.file.write("@" + str(idx) + "\nD=A+D\n")
+                self.file.write("A = D\nD = M\n@SP\nA=M\nM=D\n@SP\nM = M+1\n")
 
 
     def fileClose(self):
