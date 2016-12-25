@@ -27,5 +27,17 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+
+	//choose where the load bit goes to
+	Mux(a = load, b = false, sel = address[14], out = Rload);
+	Mux(a = false, b = load, sel = address[14], out = Sload);
+	
+	//get the output from all memories
+	RAM16K(in = in, load = Rload, address = address[0..13], out = Rout);
+	Screen(in = in, load = Sload, address = address[0..12], out = Sout);
+	Keyboard(out = Kout);
+	
+	//choose which memory we want to read:
+	Mux4Way16(a = Rout, b = Rout, c = Sout, d = Kout, sel = address[13..14], out = out);
+
 }
