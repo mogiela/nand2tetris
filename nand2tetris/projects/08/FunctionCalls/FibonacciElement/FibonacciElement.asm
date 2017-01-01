@@ -56,79 +56,6 @@ D;JMP
 //  
 //  
 //  
-//function Sys.init 0
-(Sys.init)
-@0
-D=A
-@SP
-M=M+D
-//push constant 4
-@4
-D = A
-@SP
-M = M+1
-A = M-1
-M = D
-//call Main.fibonacci 1
-@Main.fibonacci.2
-D=A
-@SP
-M = M+1
-A = M-1
-M = D
-@LCL
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@ARG
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@THIS
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@THAT
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@SP
-D = M
-@LCL
-M = D
-@5
-D = D-A
-@1
-D = D-A
-@ARG
-M = D
-@Main.fibonacci
-D;JMP
-(Main.fibonacci.2)
-//label WHILE 
-(Sys.init$WHILE)
-//goto WHILE 
-@Sys.init$WHILE
-D;JMP
-//  
-//  
-//  
-//  
-//  
-//  
-//  
-//  
-//  
-//  
-//  
 //function Main.fibonacci 0
 (Main.fibonacci)
 @0
@@ -159,37 +86,37 @@ A = M-1
 D = M
 @a1
 M = 1
-@a13LT
+@a12LT
 D;JLT
-@a13GT
+@a12GT
 D;JMP
-(a13LT)
+(a12LT)
 @a1
 M = -1
-(a13GT)
+(a12GT)
 @SP
 A = M-1
 A = A-1
 D = M
 @a2
 M = 1
-@a24LT
+@a23LT
 D;JLT
-@a24GT
+@a23GT
 D;JMP
-(a24LT)
+(a23LT)
 @a2
 M  = -1
-(a24GT)
+(a23GT)
 @a1
 D = M
 @a2
 D = D+M
-@CompSign3
+@CompSign2
 D;JEQ
-@EqSign3
+@EqSign2
 D;JMP
-(CompSign3)
+(CompSign2)
 @a1
 D = M
 @SP
@@ -201,20 +128,20 @@ D = M
 A = M-1
 A = A-1
 M = D
-(EqSign3)
+(EqSign2)
 @SP
 A = M-1
 D = M
 A = A-1
 D = M-D
-@True3
+@True2
 D;JLT
 D = 0
-@After3
+@After2
 D;JMP
-(True3)
+(True2)
 D = -1
-(After3)
+(After2)
 @SP
 M = M-1
 @SP
@@ -318,6 +245,76 @@ M = M-D
 @SP
 M = M-1
 //call Main.fibonacci 1
+@Main.fibonacci.4
+D=A
+@SP
+M = M+1
+A = M-1
+M = D
+@LCL
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@ARG
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@THIS
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@THAT
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@SP
+D = M
+@LCL
+M = D
+@5
+D = D-A
+@1
+D = D-A
+@ARG
+M = D
+@Main.fibonacci
+D;JMP
+(Main.fibonacci.4)
+//push argument 0
+@ARG
+D = M
+@0
+A = A + D
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+//push constant 1
+@1
+D = A
+@SP
+M = M+1
+A = M-1
+M = D
+//sub  
+//sub
+@SP
+A = M-1
+D = M
+A = A-1
+M = M-D
+@SP
+M = M-1
+//call Main.fibonacci 1
 @Main.fibonacci.5
 D=A
 @SP
@@ -361,76 +358,6 @@ M = D
 @Main.fibonacci
 D;JMP
 (Main.fibonacci.5)
-//push argument 0
-@ARG
-D = M
-@0
-A = A + D
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-//push constant 1
-@1
-D = A
-@SP
-M = M+1
-A = M-1
-M = D
-//sub  
-//sub
-@SP
-A = M-1
-D = M
-A = A-1
-M = M-D
-@SP
-M = M-1
-//call Main.fibonacci 1
-@Main.fibonacci.6
-D=A
-@SP
-M = M+1
-A = M-1
-M = D
-@LCL
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@ARG
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@THIS
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@THAT
-D = M
-@SP
-M = M+1
-A = M-1
-M = D
-@SP
-D = M
-@LCL
-M = D
-@5
-D = D-A
-@1
-D = D-A
-@ARG
-M = D
-@Main.fibonacci
-D;JMP
-(Main.fibonacci.6)
 //add  
 //add
 @SP
@@ -486,5 +413,78 @@ D = M
 M = D
 @13
 A = M
+D;JMP
+//  
+//  
+//  
+//  
+//  
+//  
+//  
+//  
+//  
+//  
+//  
+//function Sys.init 0
+(Sys.init)
+@0
+D=A
+@SP
+M=M+D
+//push constant 4
+@4
+D = A
+@SP
+M = M+1
+A = M-1
+M = D
+//call Main.fibonacci 1
+@Main.fibonacci.6
+D=A
+@SP
+M = M+1
+A = M-1
+M = D
+@LCL
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@ARG
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@THIS
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@THAT
+D = M
+@SP
+M = M+1
+A = M-1
+M = D
+@SP
+D = M
+@LCL
+M = D
+@5
+D = D-A
+@1
+D = D-A
+@ARG
+M = D
+@Main.fibonacci
+D;JMP
+(Main.fibonacci.6)
+//label WHILE 
+(Sys.init$WHILE)
+//goto WHILE 
+@Sys.init$WHILE
 D;JMP
 //  

@@ -5,8 +5,8 @@ Niv Pagir, ID 305328692, Niv.Pagir@mail.huji.ac.il
 ===============================================================================
 
 
-							Project 07 -  Virtual Machine I
-							-------------------------------
+							Project 08 -  Virtual Machine II
+							--------------------------------
 
 Submitted Files
 ---------------
@@ -20,4 +20,4 @@ Writer.py - writes in assembly to the asm file
 Remarks
 -------
 The VMtranslator is implemented according to the instructions
-in the guidelines and the course book, chapter 7.
+in the guidelines and the course book, chapter 8.
