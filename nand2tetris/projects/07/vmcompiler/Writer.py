@@ -38,7 +38,6 @@ class Writer:
         self.fileName = name
 
     def arithmetic(self, cmd):
-        self.file.write("//%s\n" % cmd)
         if cmd in negNotCMD:
             self.file.write(go2sp + negNotCMD[cmd])
 
@@ -99,7 +98,7 @@ class Writer:
 
 
     def popORpush(self, cmd, seg ,idx):
-        self.file.write("//%s %s %s\n" % (cmd,seg,idx))
+
         if cmd == "pop":
             seg = segDic[seg]
             if seg == "static":
@@ -137,8 +136,6 @@ class Writer:
                 if idx[0] != '-':
                     self.file.write("@" + idx + "\nD = A\n" + d2spplusplus)
                 else:
-                    print(idx)
-                    print("@" + idx[1:]  + "\nD = A\n" + d2spplusplus)
                     self.file.write("@" + idx[1:]  + "\nD = A\n")
                     fReg = self.freeRegs.pop()
                     self.file.write("@R" + fReg + "\nM = D\n")
