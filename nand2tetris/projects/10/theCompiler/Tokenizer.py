@@ -46,7 +46,7 @@ symbols = [r'{',
 class Tokenizer:
 
     reg_intConst = re.compile(r'(\d+)')
-    reg_strConst = re.compile(r'"([^"])*"')
+    reg_strConst = re.compile(r'"([^"]*)"')
     reg_identifier = re.compile(r'[A-Za-z_]\w*')
     reg_keywords = re.compile( r'|'.join(keywords) )
 #    reg_symbols = re.compile(symbols)
