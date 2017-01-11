@@ -37,6 +37,8 @@ class CompilationEngine:
                 self.compileClassVarDec()
             elif self.tkn == "constructor" or self.tkn == "function" or self.tkn == "method":
                 self.compileSubroutine()
+            else:
+                self.writeNext()
 
         self.writeHelper()
         self.outputStream.write("</class>\n")
