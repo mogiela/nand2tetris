@@ -1,25 +1,28 @@
 import re
+
 keywords = [
-        '(class)',
-        '(constructor)',
-        '(function)'
-        '(method)',
-        '(field)',
-        '(static)',
-        '(var)',
-        '(int)',
-        '(char)',
-        '(boolean)',
-        '(void)',
-        '(true)',
-        '(false)',
-        '(null)',
-        '(this)',
-        '(let)',
-        '(do)',
-        '(if)',
-        '(else)'
-    ]
+    '(class)',
+    '(constructor)',
+    '(function)',
+    '(method)',
+    '(field)',
+    '(static)',
+    '(var)',
+    '(int)',
+    '(char)',
+    '(boolean)',
+    '(void)',
+    '(true)',
+    '(false)',
+    '(null)',
+    '(this)',
+    '(let)',
+    '(do)',
+    '(if)',
+    '(else)',
+    '(while)',
+    '(return)'
+]
 
 symbols = [r'{',
            r'}',
@@ -35,30 +38,30 @@ symbols = [r'{',
            r'*',
            r'/',
            r'&',
-           r'\|',
+           r'|',
            r'<',
            r'>',
            r'=',
            r'~']
 
-#symbols = r'[&\)\[\]\+\*\-,\<.}({;~=\|>]'
+
+# symbols = r'[&\)\[\]\+\*\-,\<.}({;~=\|>]'
 
 class Tokenizer:
-
     reg_intConst = re.compile(r'(\d+)')
     reg_strConst = re.compile(r'"([^"]*)"')
     reg_identifier = re.compile(r'[A-Za-z_]\w*')
-    reg_keywords = re.compile( r'|'.join(keywords) )
-#    reg_symbols = re.compile(symbols)
+    reg_keywords = re.compile(r'|'.join(keywords))
+    #    reg_symbols = re.compile(symbols)
     reg_whitespace = re.compile(r'[\s]+')
 
-    TYPE_SYM = "SYM"
-    TYPE_KEY = "KEY"
-    TYPE_ID = "ID"
-    TYPE_INT = "INT"
-    TYPE_STR = "STR"
+    TYPE_SYM = "symbol"
+    TYPE_KEY = "keyword"
+    TYPE_ID = "identifier"
+    TYPE_INT = "integerConstant"
+    TYPE_STR = "stringConstant"
 
-    def __init__(self,pathToFile):
+    def __init__(self, pathToFile):
         '''
         open the file,
         maybe also read first line,
@@ -68,8 +71,6 @@ class Tokenizer:
         self.srcFile = open(pathToFile)
         self.isEOF = False
         self.tokens = self.__tokenizeNextValidLine__()
-
-
 
     def __tknizeNextLine__(self):
         if self.isEOF:
@@ -106,8 +107,10 @@ class Tokenizer:
                 continue
             strM = self.reg_strConst.match(lineStr)
             if strM:
-                lineTkns.append((self.TYPE_STR, strM.group(1))) #group 1 is the string without the quotes
-                lineStr = lineStr[len(strM.group(0)):] # when we remove the prefix we want to remove the quotes too
+                lineTkns.append(
+                    (self.TYPE_STR, strM.group(1)))  # group 1 is the string without the quotes
+                lineStr = lineStr[len(
+                    strM.group(0)):]  # when we remove the prefix we want to remove the quotes too
                 continue
             idM = self.reg_identifier.match(lineStr)
             if idM:
@@ -117,38 +120,35 @@ class Tokenizer:
 
         return lineTkns
 
-
     def __cleanLine__(self, line):
         lineComInd = line.find("//")
-        if lineComInd > -1: # cut out the line comments
+        if lineComInd > -1:  # cut out the line comments
             line = line[:lineComInd]
 
         inlineComStart = line.find("/*")
         if inlineComStart > -1:
             lineStart = line[:inlineComStart]
             inlineComEnd = line.find("*/")
-            while not inlineComEnd > -1:	#no closing comment found
-                line = self.srcFile.readline()			#read a new line
+            while not inlineComEnd > -1:  # no closing comment found
+                line = self.srcFile.readline()  # read a new line
                 self.linum += 1
                 if line == "":
                     self.isEOF = True
                     return lineStart
-                inlineComEnd = line.find("*/")	# look for a closing comment
+                inlineComEnd = line.find("*/")  # look for a closing comment
 
-            #if we're here then we found a closing comment
-            line = lineStart + line[inlineComEnd+2:]
+            # if we're here then we found a closing comment
+            line = lineStart + line[inlineComEnd + 2:]
         return line
-
 
     def nextToken(self):
 
-        nextTkn =  self.tokens[0]
+        nextTkn = self.tokens[0]
         self.tokens = self.tokens[1:]
         if not self.hasMoreTokens():
             self.tokens = self.__tokenizeNextValidLine__()
 
         return nextTkn
-
 
     def __tokenizeNextValidLine__(self):
         nextTkns = []
@@ -168,3 +168,6 @@ class Tokenizer:
             return self.nextToken()
         else:
             raise StopIteration
+
+    def closeFile(self):
+        self.srcFile.close()
