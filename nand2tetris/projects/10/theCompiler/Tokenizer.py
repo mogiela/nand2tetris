@@ -52,11 +52,11 @@ class Tokenizer:
 #    reg_symbols = re.compile(symbols)
     reg_whitespace = re.compile(r'[\s]+')
 
-    TYPE_SYM = ""
-    TYPE_KEY = ""
-    TYPE_ID = ""
-    TYPE_INT = ""
-    TYPE_STR = ""
+    TYPE_SYM = "SYM"
+    TYPE_KEY = "KEY"
+    TYPE_ID = "ID"
+    TYPE_INT = "INT"
+    TYPE_STR = "STR"
 
     def __init__(self,pathToFile):
         '''
@@ -111,7 +111,7 @@ class Tokenizer:
                 continue
             idM = self.reg_identifier.match(lineStr)
             if idM:
-                lineTkns.append((self.TYPE_STR, idM.group(0)))
+                lineTkns.append((self.TYPE_ID, idM.group(0)))
                 lineStr = lineStr[len(idM.group(0)):]
                 continue
 
