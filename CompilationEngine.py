@@ -29,14 +29,16 @@ class CompilationEngine:
 
         self.writeNext()
         self.writeNext()
+        self.writeNext()
+
 
         while self.inputStream.hasMoreTokens():
-            self.writeNext()
             if self.tkn == "static" or self.tkn == "field":
                 self.compileClassVarDec()
             elif self.tkn == "constructor" or self.tkn == "function" or self.tkn == "method":
                 self.compileSubroutine()
 
+        self.writeHelper()
         self.outputStream.write("</class>\n")
 
     def compileClassVarDec(self):
@@ -45,7 +47,7 @@ class CompilationEngine:
         while self.tkn != ";":
             self.writeNext()
 
-        self.writeHelper()
+        self.writeNext()
         self.outputStream.write("</classVarDec>\n")
 
     def compileSubroutine(self):
@@ -75,7 +77,7 @@ class CompilationEngine:
         self.compileStatements()
 
         # }
-        self.writeHelper()
+        self.writeNext()
         self.outputStream.write("</subroutineBody>\n")
 
     def compileParameterList(self):
@@ -119,7 +121,7 @@ class CompilationEngine:
         self.outputStream.write("</statements>\n")
 
     def compileDo(self):
-        self.outputStream.write("<doStatements>\n")
+        self.outputStream.write("<doStatement>\n")
         while self.tkn != "(":
             self.writeNext()
 
@@ -132,10 +134,10 @@ class CompilationEngine:
         self.writeNext()
         # ;
         self.writeNext()
-        self.outputStream.write("</doStatements>\n")
+        self.outputStream.write("</doStatement>\n")
 
     def compileLet(self):
-        self.outputStream.write("<letStatements>\n")
+        self.outputStream.write("<letStatement>\n")
         while self.tkn != "=":
             if self.tkn == "[":
                 # [
@@ -153,10 +155,10 @@ class CompilationEngine:
 
         # ;
         self.writeNext()
-        self.outputStream.write("</letStatements>\n")
+        self.outputStream.write("</letStatement>\n")
 
     def compileWhile(self):
-        self.outputStream.write("<whileStatements>\n")
+        self.outputStream.write("<whileStatement>\n")
         # while
         self.writeNext()
 
@@ -171,10 +173,10 @@ class CompilationEngine:
         self.compileStatements()
         # }
         self.writeNext()
-        self.outputStream.write("</whileStatements>\n")
+        self.outputStream.write("</whileStatement>\n")
 
     def compileReturn(self):
-        self.outputStream.write("<returnStatements>\n")
+        self.outputStream.write("<returnStatement>\n")
         # return
         self.writeNext()
 
@@ -183,10 +185,10 @@ class CompilationEngine:
 
         # ;
         self.writeNext()
-        self.outputStream.write("</returnStatements>\n")
+        self.outputStream.write("</returnStatement>\n")
 
     def compileIf(self):
-        self.outputStream.write("<ifStatements>\n")
+        self.outputStream.write("<ifStatement>\n")
         # if
         self.writeNext()
 
@@ -211,7 +213,7 @@ class CompilationEngine:
             # }
             self.writeNext()
 
-        self.outputStream.write("</ifStatements>\n")
+        self.outputStream.write("</ifStatement>\n")
 
     def compileExpression(self):
         op = ['+', '-', '*', '/', '&', '|', '<', '>', '=']
@@ -238,6 +240,7 @@ class CompilationEngine:
             self.writeNext()
             self.compileExpression()
             # )
+
             self.writeNext()
 
         else:
