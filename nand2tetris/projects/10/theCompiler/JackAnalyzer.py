@@ -4,9 +4,10 @@ from CompilationEngine import CompilationEngine
 from Tokenizer import Tokenizer
 
 
-def Manage(filesList, outputPath):
+def Manage(filesList):
     for path in filesList:
         tokonizedFile = Tokenizer(path)
+        outputPath = path[:-4] + "xml"
         compileEngine = CompilationEngine(tokonizedFile, outputPath)
         compileEngine.compileClass()
         tokonizedFile.closeFile()
@@ -23,14 +24,9 @@ if os.path.isdir(path):
     for file in os.listdir(path):
         if file[-4:] == "jack":
             files.append((path + "/" + file))
-    if path.endswith("/"):
-        tempPath = path[0:-1]
-        outputPath = path + os.path.basename(tempPath) + ".xml"
-    else:
-        outputPath = path + "/" + os.path.basename(path) + ".xml"
+
 
 else:
     files.append(path)
-    outputPath = path[:-2] + "xml"
 
-Manage(files, outputPath)
+Manage(files)
