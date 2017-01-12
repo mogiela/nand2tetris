@@ -94,6 +94,7 @@ class Writer:
     def writeCommand(self, C_Type, C_arg1, C_arg2):
         #writing the command that follows for debugging
         self.outputFile.write("//%s %s %s\n" % (C_Type, C_arg1, C_arg2))
+        
         asm_code = ""
         if C_Type == "pop" or C_Type == "push":
             asm_code = self.writePopPush(C_Type, C_arg1, C_arg2)

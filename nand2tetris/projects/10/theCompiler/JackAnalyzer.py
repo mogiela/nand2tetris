@@ -6,27 +6,28 @@ from Tokenizer import Tokenizer
 
 def Manage(filesList):
     for path in filesList:
-        tokonizedFile = Tokenizer(path)
-        outputPath = path[:-4] + "xml"
-        compileEngine = CompilationEngine(tokonizedFile, outputPath)
+        head, tail = os.path.split(path)
+        outputPath = '%s/my-%s.xml' % (head, tail[:tail.rfind('.')])
+        print(outputPath)
+        tokenizedFile = Tokenizer(path)
+        compileEngine = CompilationEngine(tokenizedFile, outputPath)
         compileEngine.compileClass()
-        tokonizedFile.closeFile()
+        tokenizedFile.closeFile()
         compileEngine.closeFile()
 
 
-if len(sys.argv) > 2:
-    raise ValueError("Wrong number of arguments")
-path = sys.argv[1]
-files = []
-outputPath = ""
-if os.path.isdir(path):
-    # get all files from dir and add them to the files list
-    for file in os.listdir(path):
-        if file[-4:] == "jack":
-            files.append((path + "/" + file))
+if __name__ == "__main__":
+    if len(sys.argv) > 2:
+        raise ValueError("Wrong number of arguments")
+    path = os.path.relpath(sys.argv[1])
+    files = []
+    outputPath = ""
+    if os.path.isdir(path):
+        # get all files from dir and add them to the files list
+        for filename in os.listdir(path):
+            if filename.endswith(".jack"):
+                files.append(path + "/" + filename)
+    else:
+        files.append(path)
 
-
-else:
-    files.append(path)
-
-Manage(files)
+    Manage(files)
