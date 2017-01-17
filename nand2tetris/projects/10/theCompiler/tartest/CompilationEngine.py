@@ -8,11 +8,11 @@ class CompilationEngine:
         self.type = self.curTkn[0]
 
     def writeHelper(self):
-        special = {"<": "&lt;", ">": "&gt;", "\"": "&quot", "&": "&amp;"}
+        spaciel = {"<" : "&lt;", ">": "&gt;", "\"": "&quot", "&": "&amp;"}
 
         self.outputStream.write("<" + self.type + ">")
-        if self.tkn in special:
-            self.outputStream.write(" " + special[self.tkn] + " ")
+        if self.tkn in spaciel:
+            self.outputStream.write(" " + spaciel[self.tkn] + " ")
         else:
             self.outputStream.write(" " + self.tkn + " ")
         self.outputStream.write("</" + self.type + ">\n")
@@ -23,12 +23,14 @@ class CompilationEngine:
         self.tkn = self.curTkn[1]
         self.type = self.curTkn[0]
 
+
     def compileClass(self):
         self.outputStream.write("<class>\n")
 
         self.writeNext()
         self.writeNext()
         self.writeNext()
+
 
         while self.inputStream.hasMoreTokens():
             if self.tkn == "static" or self.tkn == "field":
@@ -240,6 +242,7 @@ class CompilationEngine:
             self.writeNext()
             self.compileExpression()
             # )
+
             self.writeNext()
 
         else:
@@ -276,6 +279,7 @@ class CompilationEngine:
                 self.compileExpression()
 
         self.outputStream.write("</expressionList>\n")
+
 
     def closeFile(self):
         self.outputStream.close()
