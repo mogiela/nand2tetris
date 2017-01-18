@@ -150,9 +150,9 @@ class CompilationEngine:
             #push classSize
             #call allocate
             #pop pointer 1
-            retval = 'pointer 0'
+            retval = 'constructor'
         elif routineKind == 'void':
-            retval = 'constant 0'
+            retval = 'void'
 
         self.compileSubroutineBody(retval)
 
