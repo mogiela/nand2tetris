@@ -71,6 +71,7 @@ class CompilationEngine:
         self.tkn = self.curTkn[1]
         self.type = self.curTkn[0]
         self.symTable = SymbolTable()
+        self.outputLinum = 0
 
     def advance(self):
         self.curTkn = self.inputStream.nextToken()
@@ -78,19 +79,10 @@ class CompilationEngine:
         self.type = self.curTkn[0]
 
 
-    def writeHelper(self):
-        special = {"<": "&lt;", ">": "&gt;", "\"": "&quot", "&": "&amp;"}
+    def write(self, string):
+        self.outputStream.write(string)
+        self.outputLinum += 1
 
-        self.outputStream.write("<" + self.type + ">")
-        if self.tkn in special:
-            self.outputStream.write(" " + special[self.tkn] + " ")
-        else:
-            self.outputStream.write(" " + self.tkn + " ")
-        self.outputStream.write("</" + self.type + ">\n")
-
-    def writeNext(self):
-        self.writeHelper()
-        self.advance()
     def compileClass(self):
         #self.outputStream.write("<class>\n")
 
@@ -153,6 +145,8 @@ class CompilationEngine:
         #if its a constructor get num fields, allocate, and return this
         retval = None
         if routineKind == 'constructor':
+            classSize = SymbolTable.kindCount('field')
+
 
         self.compileSubroutineBody()
 
