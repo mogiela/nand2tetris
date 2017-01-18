@@ -5,19 +5,19 @@ Niv Pagir, ID 305328692, Niv.Pagir@mail.huji.ac.il
 ===============================================================================
 
 
-							Project 10 - Jack Compiler - Syntax Analysis
+							Project 11 - Compiler II: Code Generation 
 							--------------------------------------------
 
 Submitted Files
 ---------------
 
 README - This file
-JackAnalyzer.py - manage the all process
+JackCompiler.py - manage the all process
 Tokenizer.py - tokenizes a single jack file into tokens
-CompilationEngine.py - analyzes the tokens from the tokenizer and writes the xml
+CompilationEngine.py - analyzes the tokens from the tokenizer and writes the vm files
 
 
 Remarks
 -------
 implemented according to the instructions
-in the guidelines and the course book, chapter 10.
+in the guidelines and the course book, chapter 11.
