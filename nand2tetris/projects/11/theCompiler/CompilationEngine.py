@@ -23,14 +23,14 @@ class SymbolTable:
             if self.__subScope__.exists(name):
                 return self.__subScope__.typeOf(name)
 
-        return self.__symbols__[name][POS_TYPE]
+        return self.__symbols__[name][self.POS_TYPE]
 
     def kindOf(self, name):
         if self.__subScope__ != None:
             if self.__subScope__.exists(name):
                 return self.__subScope__.kindOf(name)
 
-        return self.__symbols__[name][POS_KIND]
+        return self.__symbols__[name][self.POS_KIND]
 
     def numOf(self, name):
         if self.__subScope__ != None:
@@ -137,7 +137,7 @@ class CompilationEngine:
 
         # if its a method add a 'this' argument to the symbol table
         if routineKind == 'method':
-            self.symTable.defineSubSym('this', self.symTable.scopeName, argument)
+            self.symTable.defineSubSym('this', self.symTable.scopeName, 'argument')
         self.compileParameterList()  # this basically adds them to the subScopeTable
         nlcl = self.compileSubroutineLocals()  # get the number of locals
         # write the function decleration
@@ -146,6 +146,10 @@ class CompilationEngine:
         retval = None
         if routineKind == 'constructor':
             classSize = SymbolTable.kindCount('field')
+            #push classSize
+            #call allocate
+            #pop pointer 1
+            retval = ''
 
 
         self.compileSubroutineBody()
