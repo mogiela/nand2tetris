@@ -35,15 +35,15 @@ class SymbolTable:
     def numOf(self, name):
         if self.__subScope__ != None:
             if self.__subScope__.exists(name):
-                return self.__subScope__.numOf(name)
+                return str(self.__subScope__.numOf(name))
 
-        return self.__symbols__[name][POS_NUM]
+        return str(self.__symbols__[name][self.POS_NUM])
 
     def newSubScope(self):
         self.__subScope__ = SymbolTable()
 
-    def exists(self,name):
-        return name in self.__symbols__
+    def exists(self, name):
+        return (name in self.__symbols__) or (self.__subScope__.exists(name))
 
     def __repr__(self):
         r = ""
@@ -73,6 +73,7 @@ class CompilationEngine:
         self.symTable = SymbolTable()
         self.outputLinum = 0
 
+
     def advance(self):
         self.curTkn = self.inputStream.nextToken()
         self.tkn = self.curTkn[1]
@@ -82,6 +83,7 @@ class CompilationEngine:
     def write(self, string):
         self.outputStream.write(string)
         self.outputLinum += 1
+
 
     def compileClass(self):
         #self.outputStream.write("<class>\n")
@@ -107,8 +109,6 @@ class CompilationEngine:
         # debugging
         print(self.symTable)
 
-        #self.writeHelper()
-        #self.outputStream.write("</class>\n")
 
     def compileClassVarDec(self, kindName):
         '''
@@ -123,7 +123,7 @@ class CompilationEngine:
             # we now have the var name
             self.symTable.defineSym(self.tkn, typeName, kindName)
             self.advance()
-            # we now have ',' or ';'
+
 
     def compileSubroutine(self, routineKind):
         # add a symbol for the routine?
@@ -145,37 +145,26 @@ class CompilationEngine:
         #if its a constructor get num fields, allocate, and return this
         retval = None
         if routineKind == 'constructor':
-            classSize = SymbolTable.kindCount('field')
+            classSize = self.symTable.kindCount('field')
+            # TODO:
             #push classSize
             #call allocate
             #pop pointer 1
-            retval = ''
+            retval = 'pointer 0'
+        elif routineKind == 'void':
+            retval = 'constant 0'
 
+        self.compileSubroutineBody(retval)
 
-        self.compileSubroutineBody()
-
-    def compileSubroutineLocals(self):
-        self.advance()
-        nlcl = 0
-        while self.tkn == "var":
-            nlcl += 1
-            self.compileVarDec()
-
-        return nlcl
 
     def compileSubroutineBody(self, retval = None):
         '''
         compile the body of the subroutine
         if retval is not None, then it is pushed before every return
         '''
-
-        # {
-
         self.compileStatements()
+        self.advance()
 
-        # }
-        self.writeNext()
-        self.outputStream.write("</subroutineBody>\n")
 
     def compileParameterList(self):
         '''
@@ -193,15 +182,27 @@ class CompilationEngine:
         #throw away the closing bracket
         self.advance()
 
+
+    def compileSubroutineLocals(self):
+        self.advance()
+        nlcl = 0
+        while self.tkn == "var":
+            nlcl += 1
+            self.advance()
+            self.compileVarDec()
+
+        return nlcl
+
+
     def compileVarDec(self):
-        self.outputStream.write("<varDec>\n")
-
+        typeName = self.tkn
         while self.tkn != ";":
-            self.writeNext()
+            self.advance()
+            self.symTable.defineSubSym(self.tkn, typeName, 'var')
+            self.advance()
 
-        # for the while in subroutine body
-        self.writeNext()
-        self.outputStream.write("</varDec>\n")
+        self.advance()          # throw ending ';'
+
 
     def compileStatements(self):
         statements = ["let", "if", "while", "do", "return"]
@@ -242,25 +243,33 @@ class CompilationEngine:
         self.outputStream.write("</doStatement>\n")
 
     def compileLet(self):
-        self.outputStream.write("<letStatement>\n")
-        while self.tkn != "=":
-            if self.tkn == "[":
-                # [
-                self.writeNext()
+        '''
+        first compile the expression then push it to the variable.
+        assume its a variable, then check if its an array,
+        if array, compile array, else, compile var
+        '''
+        self.advance()
+        # its a var
+        targetSeg, targetNum = self.symTable.kindOf(self.tkn), self.symTable.numOf(self.tkn)
+        self.advance()
 
-                self.compileExpression()
-                # ]
-                self.writeNext()
-            else:
-                self.writeNext()
+        if self.tkn == '[':     # its an array
+            self.writePush(targetSeg, targetNum)
+            self.advance()
+            self.compileExpression()
+            self.writeArithmetic('add')
+            self.advance()
+            self.compileExpression()
+            self.writePop('temp', '0')
+            self.writePop('pointer', '1')
+            self.writePush('temp', '0')
+            self.writePop('that', '0')
+        else:                   # EZ
+            self.advance()
+            self.compileExpression()
+            self.writePop(targetSeg, targetNum)
 
-        # =
-        self.writeNext()
-        self.compileExpression()
-
-        # ;
-        self.writeNext()
-        self.outputStream.write("</letStatement>\n")
+        self.advance()          # throw ending ';'
 
     def compileWhile(self):
         self.outputStream.write("<whileStatement>\n")
