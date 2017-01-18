@@ -1,2 +1,2 @@
 all:
-	chmod +x JackAnalyzer
+	chmod +x JackCompiler
