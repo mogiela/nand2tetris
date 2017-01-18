@@ -1,41 +1,41 @@
-
 class SymbolTable:
-
     POS_TYPE = 0
     POS_KIND = 1
     POS_NUM = 2
+
     def __init__(self, scopeName):
         self.__symbols__ = {}
         self.__segCount__ = {'static': 0, 'var': 0, 'arg': 0, 'field': 0, 'function': 0, 'method': 0}
         self.__subScope__ = None
         self.scopeName = scopeName
+        self.labelCount = 0
 
     def defineSym(self, symName, symType, symKind):
         self.__symbols__[symName] = [symType, symKind, self.__segCount__[symKind]]
         self.__segCount__[symKind] += 1
 
     def defineSubSym(self, symName, symType, symKind):
-        if self.__subScope__ != None:
+        if self.__subScope__ is not None:
             self.__subScope__.defineSym(symName, symType, symKind)
 
     def typeOf(self, name):
-        if self.__subScope__ != None:
+        if self.__subScope__ is not None:
             if self.__subScope__.exists(name):
                 return self.__subScope__.typeOf(name)
 
         return self.__symbols__[name][self.POS_TYPE]
 
     def kindOf(self, name):
-        if self.__subScope__ != None:
+        if self.__subScope__ is not None:
             if self.__subScope__.exists(name):
                 return self.__subScope__.kindOf(name)
 
         return self.__symbols__[name][self.POS_KIND]
 
     def numOf(self, name):
-        if self.__subScope__ != None:
+        if self.__subScope__ is not None:
             if self.__subScope__.exists(name):
-                return str(self.__subScope__.numOf(name))
+                return self.__subScope__.numOf(name)
 
         return str(self.__symbols__[name][self.POS_NUM])
 
@@ -43,55 +43,86 @@ class SymbolTable:
         self.__subScope__ = SymbolTable()
 
     def exists(self, name):
-        return (name in self.__symbols__) or (self.__subScope__.exists(name))
+        return name in self.__symbols__
 
     def __repr__(self):
         r = ""
         for varName, props in self.__symbols__.items():
             r += ('%s: %s,%s,%s' % (varName, props[0], props[1], props[2])) + '\n'
 
-        if self.__subScope__ != None:
-            r += 'subScope: \n' + str(self.subScope)
+        if self.__subScope__ is not None:
+            r += 'subScope: \n' + str(self.__subScope__)
 
         return r
 
     def kindCount(self, kind):
-        return self.__symbols__[kind]
+        return str(self.__symbols__[kind])
+
+    def getLabel(self):
+        self.labelCount += 1
+        return "L" + self.labelCount
 
 
-#-----endClass-----
+# -----endClass-----
 
 
 class CompilationEngine:
-    def __init__(self, input, output):
+    def __init__(self, inputFile, output):
         self.lookAhead = None
-        self.inputStream = input
+        self.inputStream = inputFile
         self.outputStream = open(output, "w")
-        self.curTkn = self.inputStream.nextToken()  # TODO
+        self.curTkn = self.inputStream.nextToken()
         self.tkn = self.curTkn[1]
         self.type = self.curTkn[0]
-        self.symTable = SymbolTable()
+        self.symTable = None
         self.outputLinum = 0
-
 
     def advance(self):
         self.curTkn = self.inputStream.nextToken()
         self.tkn = self.curTkn[1]
         self.type = self.curTkn[0]
 
-
     def write(self, string):
-        self.outputStream.write(string)
+        self.outputStream.write(string + "\n")
         self.outputLinum += 1
 
+    def writePush(self, string, num):
+        toWrite = "push" + " " + string + " " + num
+        self.write(toWrite)
+
+    def writePop(self, string, num):
+        toWrite = "pop" + " " + string + " " + num
+        self.write(toWrite)
+
+    def writeArithmetic(self, string):
+        self.write(string)
+
+    def writeLabel(self, string):
+        toWrite = "label" + " " + string
+        self.write(toWrite)
+
+    def writeGoto(self, string):
+        toWrite = "goto" + " " + string
+        self.write(toWrite)
+
+    def writeIf(self, string):
+        toWrite = "if-goto" + " " + string
+        self.write(toWrite)
+
+    def writeCall(self, string, num):
+        toWrite = "call" + " " + string + " " + num
+        self.write(toWrite)
+
+    def writeFunction(self, string, num):
+        toWrite = "function" + " " + string + " " + num
+        self.write(toWrite)
+
+    def writeReturn(self):
+        self.write("return")
 
     def compileClass(self):
-        #self.outputStream.write("<class>\n")
-
-        # class, className, {
-        #self.writeNext()
-        #self.writeNext()
-        #self.writeNext()
+        self.advance()
+        self.symTable = SymbolTable(self.tkn)
 
         while self.inputStream.hasMoreTokens():
             if self.tkn == "static" or self.tkn == "field":
@@ -103,12 +134,6 @@ class CompilationEngine:
             # not a constructor or a subroutine means invalid jack code, ignore
             else:
                 self.advance()
-            # else:
-            #      self.writeNext()
-
-        # debugging
-        print(self.symTable)
-
 
     def compileClassVarDec(self, kindName):
         '''
@@ -123,14 +148,14 @@ class CompilationEngine:
             # we now have the var name
             self.symTable.defineSym(self.tkn, typeName, kindName)
             self.advance()
-
+            # we now have ',' or ';'
 
     def compileSubroutine(self, routineKind):
         # add a symbol for the routine?
 
         self.symTable.newSubScope()
         self.advance()  # throw the '{' symbol
-        funcType = self.tkn # save the return type
+        funcType = self.tkn  # save the return type
         self.advance()
         functionName = self.tkn  # save the function name
         self.advance()
@@ -141,30 +166,35 @@ class CompilationEngine:
         self.compileParameterList()  # this basically adds them to the subScopeTable
         nlcl = self.compileSubroutineLocals()  # get the number of locals
         # write the function decleration
+        self.writeFunction(functionName, nlcl)
 
-        #if its a constructor get num fields, allocate, and return this
+        # if its a constructor get num fields, allocate, and return this
         retval = None
         if routineKind == 'constructor':
             classSize = self.symTable.kindCount('field')
-            # TODO:
-            #push classSize
-            #call allocate
-            #pop pointer 1
+            self.writePush("constant", classSize)
+            self.writeCall("Memory.allocate", "1")
+            self.writePop("pointer", "0")
             retval = 'constructor'
-        elif routineKind == 'void':
+        elif funcType == 'void':
             retval = 'void'
 
         self.compileSubroutineBody(retval)
 
-
-    def compileSubroutineBody(self, retval = None):
-        '''
-        compile the body of the subroutine
-        if retval is not None, then it is pushed before every return
-        '''
-        self.compileStatements()
+    def compileSubroutineLocals(self):
         self.advance()
+        nlcl = 0
+        while self.tkn == "var":
+            nlcl += 1
+            self.advance()
+            self.compileVarDec()
 
+        return nlcl
+
+    def compileSubroutineBody(self, retval=None):
+
+        self.compileStatements(retval)
+        self.advance()
 
     def compileParameterList(self):
         '''
@@ -179,20 +209,8 @@ class CompilationEngine:
             self.symTable.defineSubSym(self.tkn, argType, 'argument')
             self.advance()
 
-        #throw away the closing bracket
+        # throw away the closing bracket
         self.advance()
-
-
-    def compileSubroutineLocals(self):
-        self.advance()
-        nlcl = 0
-        while self.tkn == "var":
-            nlcl += 1
-            self.advance()
-            self.compileVarDec()
-
-        return nlcl
-
 
     def compileVarDec(self):
         typeName = self.tkn
@@ -201,12 +219,10 @@ class CompilationEngine:
             self.symTable.defineSubSym(self.tkn, typeName, 'var')
             self.advance()
 
-        self.advance()          # throw ending ';'
+        self.advance()  # throw ending ';'
 
-
-    def compileStatements(self):
+    def compileStatements(self, retval=None):
         statements = ["let", "if", "while", "do", "return"]
-        self.outputStream.write("<statements>\n")
         while self.tkn in statements:
 
             if self.tkn == "if":
@@ -216,44 +232,37 @@ class CompilationEngine:
                 self.compileLet()
 
             elif self.tkn == "do":
-                self.compileDo()
+                self.compileDo(retval)
 
             elif self.tkn == "while":
                 self.compileWhile()
 
             elif self.tkn == "return":
-                self.compileReturn()
+                self.compileReturn(retval)
 
-        self.outputStream.write("</statements>\n")
+    def compileDo(self, retval):
+        self.advance()
 
-    def compileDo(self):
-        self.outputStream.write("<doStatement>\n")
-        while self.tkn != "(":
-            self.writeNext()
+        firstTkn = self.tkn
+        # ( or .
+        self.advance()
+        self.compileSubroutineCall(firstTkn)
 
-        # (
-        self.writeNext()
-
-        self.compileExpressionList()
-
-        # )
-        self.writeNext()
-        # ;
-        self.writeNext()
-        self.outputStream.write("</doStatement>\n")
+        if retval == "void":
+            self.writePop("temp", "0")
 
     def compileLet(self):
         '''
-        first compile the expression then push it to the variable.
-        assume its a variable, then check if its an array,
-        if array, compile array, else, compile var
+                first compile the expression then push it to the variable.
+                assume its a variable, then check if its an array,
+                if array, compile array, else, compile var
         '''
         self.advance()
         # its a var
         targetSeg, targetNum = self.symTable.kindOf(self.tkn), self.symTable.numOf(self.tkn)
         self.advance()
 
-        if self.tkn == '[':     # its an array
+        if self.tkn == '[':  # its an array
             self.writePush(targetSeg, targetNum)
             self.advance()
             self.compileExpression()
@@ -264,132 +273,175 @@ class CompilationEngine:
             self.writePop('pointer', '1')
             self.writePush('temp', '0')
             self.writePop('that', '0')
-        else:                   # EZ
+        else:  # EZ
             self.advance()
             self.compileExpression()
             self.writePop(targetSeg, targetNum)
 
-        self.advance()          # throw ending ';'
+        self.advance()  # throw ending ';'
 
     def compileWhile(self):
-        self.outputStream.write("<whileStatement>\n")
-        # while
-        self.writeNext()
 
         # (
-        self.writeNext()
+        self.advance()
+        L1 = self.symTable.getLabel()
+        L2 = self.symTable.getLabel()
+
+        self.writeLabel(L1)
+
+        self.advance()
         self.compileExpression()
         # )
-        self.writeNext()
-
+        self.advance()
+        self.writeArithmetic("neg")
+        self.writeIf(L2)
         # {
-        self.writeNext()
+        self.advance()
         self.compileStatements()
-        # }
-        self.writeNext()
-        self.outputStream.write("</whileStatement>\n")
 
-    def compileReturn(self):
-        self.outputStream.write("<returnStatement>\n")
-        # return
-        self.writeNext()
+        self.writeGoto(L1)
+        self.writeLabel(L2)
+        # }
+        self.advance()
+
+    def compileReturn(self, retval):
+        self.advance()
 
         if self.tkn != ";":
             self.compileExpression()
 
+        if retval is not None:
+            if retval == "constructor":
+                self.writePush("pointer", "0")
+            else:
+                self.writePush("constant", "0")
+
+        self.writeReturn()
         # ;
-        self.writeNext()
-        self.outputStream.write("</returnStatement>\n")
+        self.advance()
 
     def compileIf(self):
-        self.outputStream.write("<ifStatement>\n")
+        L1 = self.symTable.getLabel()
+        L2 = self.symTable.getLabel()
+
         # if
-        self.writeNext()
+        self.advance()
 
         # (
-        self.writeNext()
+        self.advance()
         self.compileExpression()
         # )
-        self.writeNext()
+        self.advance()
+        self.writeArithmetic("neg")
 
+        self.writeIf(L1)
         # {
-        self.writeNext()
+        self.advance()
         self.compileStatements()
         # }
-        self.writeNext()
+        self.advance()
 
+        self.writeGoto(L2)
+        self.writeLabel(L1)
         if self.tkn == "else":
             # else
-            self.writeNext()
+            self.advance()
             # {
-            self.writeNext()
+            self.advance()
             self.compileStatements()
             # }
-            self.writeNext()
+            self.advance()
 
-        self.outputStream.write("</ifStatement>\n")
+        self.writeLabel(L2)
+
+    def compileSubroutineCall(self, first):
+        one = 0
+        if self.tkn == ".":
+            self.advance()
+            subCall = "." + self.tkn
+            if self.symTable.exists(first):
+                self.writePush(self.symTable.kindOf(first), self.symTable.numOf(first))
+                first = self.symTable.typeOf(first)
+                one = 1
+                # (
+                self.advance()
+        else:
+            subCall = ""
+
+        # expressionList
+        self.advance()
+        nArg = one + self.compileExpressionList()
+
+        # )
+        self.advance()
+        # ;
+        self.advance()
+
+        self.writeCall(first + subCall, str(nArg))
 
     def compileExpression(self):
-        op = ['+', '-', '*', '/', '&', '|', '<', '>', '=']
+        op = {'+': 'add', '-': 'sub', '*': 'Math.multiply 2', '/': 'Math.divide 2', '&': 'and', '|': 'or', '<': ' lt',
+              '>': 'gt', '=': 'eq'}
 
-        self.outputStream.write("<expression>\n")
         self.compileTerm()
         while self.tkn in op:
-            self.writeNext()
+            oper = op[self.tkn]
+            self.advance()
             self.compileTerm()
-        self.outputStream.write("</expression>\n")
+            self.writeArithmetic(oper)
 
     def compileTerm(self):
-        unaryOp = ['-', '~']
+        unaryOp = {'-': 'neg', '~': 'not'}
 
-        self.outputStream.write("<term>\n")
         # unary
         if self.tkn in unaryOp:
-            self.writeNext()
+            unOper = unaryOp[self.tkn]
+            self.advance()
             self.compileTerm()
+            self.writeArithmetic(unOper)
 
         # ( expression )
         elif self.tkn == "(":
             # (
-            self.writeNext()
+            self.advance()
             self.compileExpression()
             # )
-            self.writeNext()
+            self.advance()
 
         else:
-            self.writeNext()
+            first = self.tkn
+            self.advance()
 
             # subroutineCall:
             if self.tkn == "(" or self.tkn == ".":
-                while self.tkn != "(":
-                    self.writeNext()
+                self.compileSubroutineCall(first)
 
-                # (
-                self.writeNext()
-
-                self.compileExpressionList()
-
-                # )
-                self.writeNext()
             # varName '[' expression ']':
             elif self.tkn == "[":
+                self.writePush(self.symTable.kindOf(first), self.symTable.numOf(first))
                 # [
-                self.writeNext()
+                self.advance()
                 self.compileExpression()
+                self.writeArithmetic("add")
+                self.writePop("pointer", "1")
+                self.writePush("that", "0")
                 # ]
-                self.writeNext()
+                self.advance()
 
-        self.outputStream.write("</term>\n")
+            else:
+                self.writePush(self.symTable.kindOf(first), self.symTable.numOf(first))
+                self.advance()
 
     def compileExpressionList(self):
-        self.outputStream.write("<expressionList>\n")
+        counter = 0
         if self.tkn != ")":
+            counter = 1
             self.compileExpression()
             while self.tkn == ",":
-                self.writeNext()
+                counter += 1
+                self.advance()
                 self.compileExpression()
-
-        self.outputStream.write("</expressionList>\n")
+        return counter
 
     def closeFile(self):
         self.outputStream.close()
