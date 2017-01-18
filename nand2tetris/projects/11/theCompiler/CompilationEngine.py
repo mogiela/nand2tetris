@@ -39,8 +39,8 @@ class SymbolTable:
 
         return str(self.__symbols__[name][self.POS_NUM])
 
-    def newSubScope(self):
-        self.__subScope__ = SymbolTable()
+    def newSubScope(self, name):
+        self.__subScope__ = SymbolTable(name)
 
     def exists(self, name):
         return name in self.__symbols__
@@ -153,12 +153,14 @@ class CompilationEngine:
     def compileSubroutine(self, routineKind):
         # add a symbol for the routine?
 
-        self.symTable.newSubScope()
         self.advance()  # throw the '{' symbol
         funcType = self.tkn  # save the return type
         self.advance()
         functionName = self.tkn  # save the function name
+        self.symTable.newSubScope(functionName)
         self.advance()
+
+
 
         # if its a method add a 'this' argument to the symbol table
         if routineKind == 'method':
@@ -166,7 +168,7 @@ class CompilationEngine:
         self.compileParameterList()  # this basically adds them to the subScopeTable
         nlcl = self.compileSubroutineLocals()  # get the number of locals
         # write the function decleration
-        self.writeFunction(functionName, nlcl)
+        self.writeFunction(functionName, str(nlcl))
 
         # if its a constructor get num fields, allocate, and return this
         retval = None
@@ -393,8 +395,19 @@ class CompilationEngine:
     def compileTerm(self):
         unaryOp = {'-': 'neg', '~': 'not'}
 
+        if self.type == "integerConstant":
+            self.writePush("constant", self.tkn)
+
+        elif self.type == "stringConstant":
+            self.writePush("constant", str(len(self.tkn)))
+            self.writeCall("String.new", "1")
+            for c in self.tkn:
+                self.writePush("constant", str(ord(c)))
+                self.writeCall("String.appendChar", "1")
+
+
         # unary
-        if self.tkn in unaryOp:
+        elif self.tkn in unaryOp:
             unOper = unaryOp[self.tkn]
             self.advance()
             self.compileTerm()
@@ -428,9 +441,11 @@ class CompilationEngine:
                 # ]
                 self.advance()
 
-            else:
+            elif self.symTable.exists(first):
                 self.writePush(self.symTable.kindOf(first), self.symTable.numOf(first))
                 self.advance()
+
+
 
     def compileExpressionList(self):
         counter = 0
