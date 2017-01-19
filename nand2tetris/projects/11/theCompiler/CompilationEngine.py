@@ -5,7 +5,7 @@ class SymbolTable:
 
     def __init__(self, scopeName):
         self.__symbols__ = {}
-        self.__segCount__ = {'static': 0, 'var': 0, 'arg': 0, 'field': 0, 'function': 0, 'method': 0}
+        self.__segCount__ = {'static': 0, 'var': 0, 'argument': 0, 'field': 0, 'function': 0, 'method': 0}
         self.__subScope__ = None
         self.scopeName = scopeName
         self.labelCount = 0
@@ -52,7 +52,7 @@ class SymbolTable:
             r += ('%s: %s,%s,%s' % (varName, props[0], props[1], props[2])) + '\n'
 
         if self.__subScope__ is not None:
-            r += 'subScope: \n' + str(self.__subScope__)
+            r += 'subScope: %s\n' %self.__subScope__.scopeName + str(self.__subScope__)
 
         return r
 
@@ -126,6 +126,7 @@ class CompilationEngine:
         self.symTable = SymbolTable(self.tkn)
 
         while self.inputStream.hasMoreTokens():
+
             if self.tkn == "static" or self.tkn == "field":
                 self.compileClassVarDec(self.tkn)
 
@@ -136,7 +137,6 @@ class CompilationEngine:
             else:
                 self.advance()
 
-        print (self.symTable)
 
     def compileClassVarDec(self, kindName):
         '''
@@ -156,12 +156,12 @@ class CompilationEngine:
     def compileSubroutine(self, routineKind):
         # add a symbol for the routine?
 
-        self.advance()  # throw the '{' symbol
+        self.advance()
         funcType = self.tkn  # save the return type
         self.advance()
         functionName = self.tkn  # save the function name
         self.symTable.newSubScope(functionName)
-        self.advance()
+        self.advance()  # throw the '{' symbol
 
         # if its a method add a 'this' argument to the symbol table
         if routineKind == 'method':
@@ -206,11 +206,17 @@ class CompilationEngine:
         we leave the function after the ')' token (meaning we threw it away)
         '''
         self.advance()
+
         while self.tkn != ")":
             argType = self.tkn
             self.advance()
-            self.symTable.defineSubSym(self.tkn, argType, 'argument')
+            argName = self.tkn
             self.advance()
+            if self.tkn == ",":
+                self.advance()
+
+
+            self.symTable.defineSubSym(argName, argType, 'argument')
 
         # throw away the closing bracket
         self.advance()
@@ -219,6 +225,7 @@ class CompilationEngine:
         typeName = self.tkn
         while self.tkn != ";":
             self.advance()
+
             self.symTable.defineSubSym(self.tkn, typeName, 'var')
             self.advance()
 
@@ -264,7 +271,6 @@ class CompilationEngine:
         '''
         self.advance()
         # its a var
-
         targetSeg, targetNum = self.symTable.kindOf(self.tkn), self.symTable.numOf(self.tkn)
 
         self.advance()
