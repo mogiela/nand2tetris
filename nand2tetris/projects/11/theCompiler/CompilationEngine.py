@@ -1,3 +1,10 @@
+import inspect
+import traceback
+
+def linum():
+    return inspect.currentframe().f_back.f_lineno
+
+
 class SymbolTable:
     POS_TYPE = 0
     POS_KIND = 1
@@ -43,7 +50,7 @@ class SymbolTable:
         self.__subScope__ = SymbolTable(name)
 
     def exists(self, name):
-        return name in self.__symbols__
+        return name in self.__symbols__ or name in self.__subScope__.__symbols__
 
     def __repr__(self):
         r = ""
@@ -267,9 +274,11 @@ class CompilationEngine:
         if self.tkn == '[':  # its an array
             self.writePush(targetSeg, targetNum)
             self.advance()
+            self.write('//%s' % self.tkn)  # 
             self.compileExpression()
             self.writeArithmetic('add')
             self.advance()
+            self.write('//%s' % self.tkn)  # 
             self.compileExpression()
             self.writePop('temp', '0')
             self.writePop('pointer', '1')
@@ -277,10 +286,14 @@ class CompilationEngine:
             self.writePop('that', '0')
         else:  # EZ
             self.advance()
+            self.write('//%s --- before Cexp' % self.tkn)  #
             self.compileExpression()
+            self.write('//%s --- after Cexp' % self.tkn)  #
+
             self.writePop(targetSeg, targetNum)
 
         self.advance()  # throw ending ';'
+        self.write('//throw ending: %s' % self.tkn)# 
 
     def compileWhile(self):
 
@@ -394,9 +407,11 @@ class CompilationEngine:
 
     def compileTerm(self):
         unaryOp = {'-': 'neg', '~': 'not'}
+        self.write('//%s --- inTerm' % self.tkn)  # 
 
         if self.type == "integerConstant":
             self.writePush("constant", self.tkn)
+            self.advance()
 
         elif self.type == "stringConstant":
             self.writePush("constant", str(len(self.tkn)))
@@ -404,6 +419,8 @@ class CompilationEngine:
             for c in self.tkn:
                 self.writePush("constant", str(ord(c)))
                 self.writeCall("String.appendChar", "1")
+            self.advance()
+            self.write('//%s --- strCon after adv' % self.tkn)  # 
 
 
         # unary
@@ -415,19 +432,21 @@ class CompilationEngine:
 
         # ( expression )
         elif self.tkn == "(":
+            print(2)
             # (
             self.advance()
             self.compileExpression()
             # )
             self.advance()
-
+            self.write('line number: %s %s' % (linum(),self.tkn))
         else:
             first = self.tkn
             self.advance()
-
             # subroutineCall:
             if self.tkn == "(" or self.tkn == ".":
+                print(1)
                 self.compileSubroutineCall(first)
+                self.write('line number: %s %s' % (linum(),self.tkn))
 
             # varName '[' expression ']':
             elif self.tkn == "[":
@@ -442,9 +461,10 @@ class CompilationEngine:
                 self.advance()
 
             elif self.symTable.exists(first):
+                self.write('line number: %s' % linum())
                 self.writePush(self.symTable.kindOf(first), self.symTable.numOf(first))
                 self.advance()
-
+        self.write('//%s --- end of Cterm' % self.tkn)  #
 
 
     def compileExpressionList(self):
