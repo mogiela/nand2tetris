@@ -1,4 +1,4 @@
-1// This file is part of www.nand2tetris.org
+// This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/11/Average/Main.jack
@@ -7,8 +7,12 @@
 class Main {
     function void main() {
         var Array a;
-        var int length;
-	var int i, sum;
+        var int length, b;
+	var int a ,sum ,i;
+
+  let a = 0;
+  let i = 1;
+  let sum = 9;
 	
 	let length = Keyboard.readInt("How many numbers? ");
 	let a = Array.new(length);

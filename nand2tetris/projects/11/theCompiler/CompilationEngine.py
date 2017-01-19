@@ -82,6 +82,8 @@ class CompilationEngine:
         self.curTkn = self.inputStream.nextToken()
         self.tkn = self.curTkn[1]
         self.type = self.curTkn[0]
+        if self.tkn == 'sum':
+            print self.curTkn
 
     def write(self, string):
         self.outputStream.write(string + "\n")
@@ -123,6 +125,7 @@ class CompilationEngine:
 
     def compileClass(self):
         self.advance()
+        print(self.tkn)
         self.symTable = SymbolTable(self.tkn)
 
         while self.inputStream.hasMoreTokens():
@@ -136,6 +139,8 @@ class CompilationEngine:
             # not a constructor or a subroutine means invalid jack code, ignore
             else:
                 self.advance()
+
+        print(self.symTable)
 
 
     def compileClassVarDec(self, kindName):
@@ -188,9 +193,8 @@ class CompilationEngine:
         self.advance()
         nlcl = 0
         while self.tkn == "var":
-            nlcl += 1
             self.advance()
-            self.compileVarDec()
+            nlcl += self.compileVarDec()
 
         return nlcl
 
@@ -223,13 +227,15 @@ class CompilationEngine:
 
     def compileVarDec(self):
         typeName = self.tkn
+        nvars = 0
         while self.tkn != ";":
             self.advance()
-
+            nvars += 1
             self.symTable.defineSubSym(self.tkn, typeName, 'var')
             self.advance()
 
         self.advance()  # throw ending ';'
+        return nvars
 
     def compileStatements(self, retval=None):
         statements = ["let", "if", "while", "do", "return"]
@@ -352,7 +358,7 @@ class CompilationEngine:
         self.compileExpression()
         # )
         self.advance()
-        self.writeArithmetic("neg")
+        self.writeArithmetic("not")
 
         self.writeIf(L1)
         # {
