@@ -20,7 +20,7 @@ class SymbolTable:
 
     def typeOf(self, name):
         if self.__subScope__ is not None:
-            if self.__subScope__.exists(name):
+            if name in self.__subScope__.__symbols__:
                 return self.__subScope__.typeOf(name)
 
         return self.__symbols__[name][self.POS_TYPE]
@@ -28,14 +28,14 @@ class SymbolTable:
     def kindOf(self, name):
         dic = {"static": "static", "argument": "argument", "field": "this", "var": "local"}
         if self.__subScope__ is not None:
-            if self.__subScope__.exists(name):
+            if name in self.__subScope__.__symbols__:
                 return self.__subScope__.kindOf(name)
 
         return dic[self.__symbols__[name][self.POS_KIND]]
 
     def numOf(self, name):
         if self.__subScope__ is not None:
-            if self.__subScope__.exists(name):
+            if name in self.__subScope__.__symbols__:
                 return self.__subScope__.numOf(name)
 
         return str(self.__symbols__[name][self.POS_NUM])
@@ -57,7 +57,7 @@ class SymbolTable:
         return r
 
     def kindCount(self, kind):
-        return str(self.__symbols__[kind])
+        return str(self.__segCount__[kind])
 
     def getLabel(self):
         self.labelCount += 1
@@ -82,8 +82,6 @@ class CompilationEngine:
         self.curTkn = self.inputStream.nextToken()
         self.tkn = self.curTkn[1]
         self.type = self.curTkn[0]
-        if self.tkn == 'sum':
-            print self.curTkn
 
     def write(self, string):
         self.outputStream.write(string + "\n")
@@ -125,7 +123,6 @@ class CompilationEngine:
 
     def compileClass(self):
         self.advance()
-        print(self.tkn)
         self.symTable = SymbolTable(self.tkn)
 
         while self.inputStream.hasMoreTokens():
@@ -140,7 +137,6 @@ class CompilationEngine:
             else:
                 self.advance()
 
-        print(self.symTable)
 
 
     def compileClassVarDec(self, kindName):
@@ -175,13 +171,16 @@ class CompilationEngine:
         nlcl = self.compileSubroutineLocals()  # get the number of locals
         # write the function decleration
         self.writeFunction(self.symTable.scopeName + "." + functionName, str(nlcl))
+        if routineKind == 'method':
+            self.writePush("argument", "0")
+            self.writePop("pointer", "0")
 
         # if its a constructor get num fields, allocate, and return this
         retval = None
         if routineKind == 'constructor':
             classSize = self.symTable.kindCount('field')
             self.writePush("constant", classSize)
-            self.writeCall("Memory.allocate", "1")
+            self.writeCall("Memory.alloc", "1")
             self.writePop("pointer", "0")
             retval = 'constructor'
         elif funcType == 'void':
@@ -235,6 +234,7 @@ class CompilationEngine:
             self.advance()
 
         self.advance()  # throw ending ';'
+
         return nvars
 
     def compileStatements(self, retval=None):
@@ -335,11 +335,8 @@ class CompilationEngine:
         if self.tkn != ";":
             self.compileExpression()
 
-        if retval is not None:
-            if retval == "constructor":
-                self.writePush("pointer", "0")
-            else:
-                self.writePush("constant", "0")
+        elif retval == "void":
+            self.writePush("constant", "0")
 
         self.writeReturn()
 
@@ -385,20 +382,20 @@ class CompilationEngine:
         if self.tkn == ".":
             self.advance()
             subCall = "." + self.tkn
+            self.advance()
             if self.symTable.exists(first):
                 self.writePush(self.symTable.kindOf(first), self.symTable.numOf(first))
                 first = self.symTable.typeOf(first)
                 one = 1
                 # (
-                self.advance()
         else:
+            self.writePush("pointer", "0")
+            one = 1
             subCall = first
             first = self.symTable.scopeName + "."
 
-        # (
         self.advance()
-        # expressionList
-        self.advance()
+
         nArg = one + self.compileExpressionList()
 
         # )
@@ -434,6 +431,19 @@ class CompilationEngine:
             for c in self.tkn:
                 self.writePush("constant", str(ord(c)))
                 self.writeCall("String.appendChar", "2")
+            self.advance()
+
+        elif self.tkn == "null" or self.tkn == "false":
+            self.writePush("constant", "0")
+            self.advance()
+
+        elif self.tkn == "true":
+            self.writePush("constant", "1")
+            self.writeArithmetic("neg")
+            self.advance()
+
+        elif self.tkn == "this":
+            self.writePush("pointer", "0")
             self.advance()
 
 
