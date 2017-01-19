@@ -26,11 +26,12 @@ class SymbolTable:
         return self.__symbols__[name][self.POS_TYPE]
 
     def kindOf(self, name):
+        dic = {"static": "static", "argument": "argument", "field": "this", "var": "local"}
         if self.__subScope__ is not None:
             if self.__subScope__.exists(name):
                 return self.__subScope__.kindOf(name)
 
-        return self.__symbols__[name][self.POS_KIND]
+        return dic[self.__symbols__[name][self.POS_KIND]]
 
     def numOf(self, name):
         if self.__subScope__ is not None:
@@ -43,7 +44,7 @@ class SymbolTable:
         self.__subScope__ = SymbolTable(name)
 
     def exists(self, name):
-        return name in self.__symbols__
+        return (name in self.__symbols__) or (name in self.__subScope__.__symbols__)
 
     def __repr__(self):
         r = ""
@@ -60,7 +61,7 @@ class SymbolTable:
 
     def getLabel(self):
         self.labelCount += 1
-        return "L" + self.labelCount
+        return "L" + str(self.labelCount)
 
 
 # -----endClass-----
@@ -135,6 +136,8 @@ class CompilationEngine:
             else:
                 self.advance()
 
+        print (self.symTable)
+
     def compileClassVarDec(self, kindName):
         '''
         basically add the current line of field or static
@@ -160,15 +163,13 @@ class CompilationEngine:
         self.symTable.newSubScope(functionName)
         self.advance()
 
-
-
         # if its a method add a 'this' argument to the symbol table
         if routineKind == 'method':
             self.symTable.defineSubSym('this', self.symTable.scopeName, 'argument')
         self.compileParameterList()  # this basically adds them to the subScopeTable
         nlcl = self.compileSubroutineLocals()  # get the number of locals
         # write the function decleration
-        self.writeFunction(functionName, str(nlcl))
+        self.writeFunction(self.symTable.scopeName + "." + functionName, str(nlcl))
 
         # if its a constructor get num fields, allocate, and return this
         retval = None
@@ -225,6 +226,7 @@ class CompilationEngine:
 
     def compileStatements(self, retval=None):
         statements = ["let", "if", "while", "do", "return"]
+
         while self.tkn in statements:
 
             if self.tkn == "if":
@@ -249,6 +251,7 @@ class CompilationEngine:
         # ( or .
         self.advance()
         self.compileSubroutineCall(firstTkn)
+        self.advance()
 
         if retval == "void":
             self.writePop("temp", "0")
@@ -261,7 +264,9 @@ class CompilationEngine:
         '''
         self.advance()
         # its a var
+
         targetSeg, targetNum = self.symTable.kindOf(self.tkn), self.symTable.numOf(self.tkn)
+
         self.advance()
 
         if self.tkn == '[':  # its an array
@@ -270,7 +275,9 @@ class CompilationEngine:
             self.compileExpression()
             self.writeArithmetic('add')
             self.advance()
+            self.advance()
             self.compileExpression()
+            self.advance()
             self.writePop('temp', '0')
             self.writePop('pointer', '1')
             self.writePush('temp', '0')
@@ -278,9 +285,10 @@ class CompilationEngine:
         else:  # EZ
             self.advance()
             self.compileExpression()
+            self.advance()
             self.writePop(targetSeg, targetNum)
 
-        self.advance()  # throw ending ';'
+
 
     def compileWhile(self):
 
@@ -293,10 +301,12 @@ class CompilationEngine:
 
         self.advance()
         self.compileExpression()
+
         # )
         self.advance()
-        self.writeArithmetic("neg")
+        self.writeArithmetic("not")
         self.writeIf(L2)
+
         # {
         self.advance()
         self.compileStatements()
@@ -304,6 +314,7 @@ class CompilationEngine:
         self.writeGoto(L1)
         self.writeLabel(L2)
         # }
+
         self.advance()
 
     def compileReturn(self, retval):
@@ -319,6 +330,7 @@ class CompilationEngine:
                 self.writePush("constant", "0")
 
         self.writeReturn()
+
         # ;
         self.advance()
 
@@ -368,21 +380,22 @@ class CompilationEngine:
                 # (
                 self.advance()
         else:
-            subCall = ""
+            subCall = first
+            first = self.symTable.scopeName + "."
 
+        # (
+        self.advance()
         # expressionList
         self.advance()
         nArg = one + self.compileExpressionList()
 
         # )
         self.advance()
-        # ;
-        self.advance()
 
         self.writeCall(first + subCall, str(nArg))
 
     def compileExpression(self):
-        op = {'+': 'add', '-': 'sub', '*': 'Math.multiply 2', '/': 'Math.divide 2', '&': 'and', '|': 'or', '<': ' lt',
+        op = {'+': 'add', '-': 'sub', '*': 'Math.multiply', '/': 'Math.divide', '&': 'and', '|': 'or', '<': ' lt',
               '>': 'gt', '=': 'eq'}
 
         self.compileTerm()
@@ -390,20 +403,26 @@ class CompilationEngine:
             oper = op[self.tkn]
             self.advance()
             self.compileTerm()
-            self.writeArithmetic(oper)
+            if oper is not "Math.multiply" and oper is not "Math.divide":
+                self.writeArithmetic(oper)
+            else:
+                self.writeCall(oper, "2")
+
 
     def compileTerm(self):
         unaryOp = {'-': 'neg', '~': 'not'}
 
         if self.type == "integerConstant":
             self.writePush("constant", self.tkn)
+            self.advance()
 
         elif self.type == "stringConstant":
             self.writePush("constant", str(len(self.tkn)))
             self.writeCall("String.new", "1")
             for c in self.tkn:
                 self.writePush("constant", str(ord(c)))
-                self.writeCall("String.appendChar", "1")
+                self.writeCall("String.appendChar", "2")
+            self.advance()
 
 
         # unary
@@ -427,6 +446,7 @@ class CompilationEngine:
 
             # subroutineCall:
             if self.tkn == "(" or self.tkn == ".":
+
                 self.compileSubroutineCall(first)
 
             # varName '[' expression ']':
@@ -443,7 +463,7 @@ class CompilationEngine:
 
             elif self.symTable.exists(first):
                 self.writePush(self.symTable.kindOf(first), self.symTable.numOf(first))
-                self.advance()
+
 
 
 
