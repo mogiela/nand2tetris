@@ -275,10 +275,11 @@ class CompilationEngine:
                 assume its a variable, then check if its an array,
                 if array, compile array, else, compile var
         '''
+
         self.advance()
         # its a var
         targetSeg, targetNum = self.symTable.kindOf(self.tkn), self.symTable.numOf(self.tkn)
-
+        self.write('// let statement -- %s %s ' %(targetSeg, targetNum))
         self.advance()
 
         if self.tkn == '[':  # its an array
@@ -436,6 +437,9 @@ class CompilationEngine:
                 self.writeCall("String.appendChar", "2")
             self.advance()
 
+        elif self.tkn == 'null':
+            self.writePush('constant', '0')
+            self.advance()
 
         # unary
         elif self.tkn in unaryOp:
