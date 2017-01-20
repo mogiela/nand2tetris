@@ -161,20 +161,22 @@ class Writer:
         self.functionScope = funcName
         asm_commands = "\n".join([
             "(%s)" % (funcName),
-            "@%s" % (nArgs),
-            "D=A",
-            "@SP",
-            "M=M+D",
             ""
+
         ])
-        #for the implementation with initializing locals to 0, put this after the label creation
-        # for i in range(int(nArgs)):
-        #     asm_commands += "\n".join([
-        #         "@0"pp
-        #         "D=A"
-        #         d2spplusplus
-        #         ""
-        #     ])
+        # push 0 in the stack for each of the local vars
+        for i in range(int(nArgs)):
+            asm_commands += "\n".join([
+                "@0",
+                "D=A",
+                d2spplusplus,
+                ""
+            ])
+        # "@%s" % (nArgs),
+        #     "D=A",
+        #     "@SP",
+        #     "M=M+D",
+
         return asm_commands
 
 
