@@ -1,0 +1,13 @@
+
+class Jacktabtest {
+
+
+      function void main() {
+               var String s;
+               let s = "a \t b \\t c \t  d";
+
+               do Output.printStr(s);
+               return;
+      }
+
+}

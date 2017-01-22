@@ -265,9 +265,10 @@ class CompilationEngine:
         self.advance()
         self.compileSubroutineCall(firstTkn)
         self.advance()
+        self.writePop('temp', '0')
 
-        if retval == "void":
-            self.writePop("temp", "0")
+        # if retval == "void":
+        #     self.writePop("temp", "0")
 
     def compileLet(self):
         '''

@@ -127,7 +127,7 @@ class Tokenizer:
                 lineStr = lineStr[len(idM.group(0)):]
                 continue
 
-            print("Bad Syntax in line %d, wasn't able to tokenize: %s" % (self.linum, lineStr), file=sys.stderr)
+            print("Bad Syntax in line %d, wasn't able to tokenize: %s" % (self.linum, lineStr))
             raise SyntaxError
 
         return lineTkns
