@@ -45,6 +45,8 @@ class PongGame {
 	do Screen.drawRectangle(0, 238, 511, 240);
 	do Output.moveCursor(22,0);
 	do Output.printString("Score: 0");
+  do Output.moveCursor(22,42);
+	do Output.printString("Cycles: ");
 	
 	let exit = false;
 	let score = 0;
@@ -81,13 +83,13 @@ class PongGame {
         while (~exit) {
             // waits for a key to be pressed.
             while ((key = 0) & (~exit)) {
-                do Output.moveCursor(10,50);
+                do Output.moveCursor(22,50);
                 do Output.printInt(cycle);
                 let cycle = cycle + 1;
                 let key = Keyboard.keyPressed();
                 do bat.move();
               	do moveBall();
-                do Sys.wait(40);
+                do Sys.wait(17);
             }
             
 
@@ -108,9 +110,12 @@ class PongGame {
             // Waits for the key to be released.
             while ((~(key = 0)) & (~exit)) {
                 let key = Keyboard.keyPressed();
+                do Output.moveCursor(22,50);
+                do Output.printInt(cycle);
+                let cycle = cycle + 1;
                 do bat.move();
                 do moveBall();
-                do Sys.wait(40);
+                do Sys.wait(17);
             }
             
         }
