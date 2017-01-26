@@ -10,23 +10,42 @@ class Screen {
 
     static boolean isBlack;
     static int mod16;
-
+    static Array twoToThe;
+    static int screen_base;
     /** Initializes the Screen. */
     function void init() {
-        let isBlack = false;
+        let isBlack = true;
         let mod16 = 15;
+        let screen_base = 16384;
+
+        let twoToThe = Array.new(16);
+        let twoToThe[0] = 1;
+        let twoToThe[1] = 2;
+        let twoToThe[2] = 4;
+        let twoToThe[3] = 8;
+        let twoToThe[4] = 16;
+        let twoToThe[5] = 32;
+        let twoToThe[6] = 64;
+        let twoToThe[7] = 128;
+        let twoToThe[8] = 256;
+        let twoToThe[9] = 512;
+        let twoToThe[10]= 1024;
+        let twoToThe[11]= 2048;
+        let twoToThe[12]= 4096;
+        let twoToThe[13]= 8192;
+        let twoToThe[14]= 16384;
+        let twoToThe[15]=~32767;
+
         return;
     }
 
     /** Erases the whole screen. */
     function void clearScreen() {
         var int i;
-        var int base;
 
-        let base = 16384;
         let i = 0;
         while (i < 8192) {
-            Memory.poke(i+base, 0);
+            do Memory.poke(i+screen_base, 0);
             let i = i + 1;
         }
         return;
@@ -35,7 +54,7 @@ class Screen {
     /** Sets the color to be used in further draw commands
      *  where white = false, black = true. */
     function void setColor(boolean b) {
-        let color = b
+        let isBlack = b;
         return;
     }
 
@@ -44,24 +63,24 @@ class Screen {
         var int raddr;
         var int baddr;
         // fix this with fast division
-        let raddr = 32*y + x/16;
-        Memory.poke(raddr, setBitOfNum(Memory.peek(raddr), x & mod16, isBlack));
+        let raddr = screen_base + (32*y) + (x/16);
+        do Memory.poke(raddr, Screen.setBitOfNum(Memory.peek(raddr), x & mod16, isBlack));
         return;
     }
 
-    function void setBitOfNum(int num, int bitPos, boolean bitVal){
-        let baddr = Math.twoToThe[x&mod16] // x % 16
+    function int setBitOfNum(int num, int bitPos, boolean bitVal) {
+        // bitPos should be smaller than 16 but just in case we take its mod16
         if (bitVal){
-            num = num | baddr;
+            return num | twoToThe[bitPos&mod16];
         }
         else{
-            num = num & ~baddr;
+            return num & (~twoToThe[bitPos&mod16]);
         }
-        return num
     }
 
     /** Draws a line from (x1, y1) to (x2, y2). */
     function void drawLine(int x1, int y1, int x2, int y2) {
+        var int debugC;
         var int dx, dy, curX, curY, targetX, targetY, diff, raddr, curBlock;
         var boolean dirLeft, dirUp;
         let dx = x2-x1;
@@ -76,20 +95,19 @@ class Screen {
             let dirLeft = true;
         }
 
-        let targetX = x1 + dx;
-        let targetY = y1 + dy;
-
-        let raddr = 32*y1 + x1/16;
+        let raddr = screen_base + (32*y1) + (x1/16);
         let curBlock = Memory.peek(raddr);
-        while ((curX < dx) & (curY < dy)){ // imagining we're going right-down but fixing it later by getting the correct block
+        while ((curX < dx) | (curY < dy)){ // imagining we're going right-down but fixing it later by getting the correct block
             // draw the pixel to the block:
             if (dirLeft){
                 //draw pixel x-curX , y-curY
-                let curBlock = curBlock | Math.twoToThe[(x1-curX)&mod16]; // sets the bit at pos curX%16 to 1
+                //let curBlock = curBlock | twoToThe[(x1-curX)&mod16]; // sets the bit at pos curX%16 to 1
+                let curBlock = Screen.setBitOfNum(curBlock, (x1-curX), isBlack);
             }
             else{
                 //draw pixel x+curX , y-curY
-                let curBlock = curBlock | Math.twoToThe[(x1+curX)&mod16]; // sets the bit at pos curX%16 to 1
+                //let curBlock = curBlock | twoToThe[(x1+curX)&mod16]; // sets the bit at pos curX%16 to 1
+                let curBlock = Screen.setBitOfNum(curBlock, (x1+curX), isBlack);
             }
 
             // update diff and curBlock
@@ -104,7 +122,8 @@ class Screen {
                 else{
                     let raddr = raddr + 32;
                 }
-                let curBlock = Memory.peek(raddr)
+
+                let curBlock = Memory.peek(raddr);
             }
             else{
                 let curX = curX + 1;
@@ -119,7 +138,7 @@ class Screen {
                     }
                 }else{
                     // check if x%16 is 0:
-                    if((x1-curX)&mod16 = 0){
+                    if((x1+curX)&mod16 = 0){
                         // write number to memory, increase raddr by 1, get new number
                         do Memory.poke(raddr, curBlock);
                         let raddr = raddr + 1;
@@ -128,35 +147,38 @@ class Screen {
                 }
             }
         }
+        do Memory.poke(raddr, curBlock);
         return;
     }
 
     /** Draws a filled rectangle where the top left corner
      *  is (x1, y1) and the bottom right corner is (x2, y2). */
     function void drawRectangle(int x1, int y1, int x2, int y2) {
-        var int i, width;
 
-        let width = x2-x1;
-        while(i < width){
-            do drawLine(x1, y1+i, x2, y2+i);
-            let i = i + 1;
+        while (~(y1 > y2)){
+            do Screen.drawLine(x1, y1, x2, y1);
+            let y1 = y1 + 1;
         }
+        return;
     }
 
     /** Draws a filled circle of radius r around (cx, cy). */
     function void drawCircle(int cx, int cy, int r) {
-        /* calculated according to the midpoint circle algorithm */
+        /** calculated according to the midpoint circle algorithm
+         *  with a few modifications to look a bit more like the school solution.
+         */
         var int x, y, err;
         let x = r;
 
-        do drawLine(cx-x, cy, cx+x, cy);
-        while(x > y){
-            do drawLine(cx-x,cy+y , cx+x,cy+y);
-            do drawLine(cx-y,cy+x , cx+y,cy+x);
-            do drawLine(cx-x,cy-y , cx+x,cy-y);
-            do drawLine(cx-y,cy-x , cx+y,cy-x);
+        do Screen.drawLine(cx-x, cy, cx+x, cy);
+        while(~(x < y)){
 
-            if ~(err > 0){ // y += 1; err += 2y + 1
+            do Screen.drawLine(cx-y-1,cy+x , cx+y,cy+x);
+            do Screen.drawLine(cx-x-1,cy+y , cx+x,cy+y);
+            do Screen.drawLine(cx-x-1,cy-y , cx+x,cy-y);
+            do Screen.drawLine(cx-y-1,cy-x , cx+y,cy-x);
+
+            if (~(err > 0)){ // y += 1; err += 2y + 1
                 let y = y + 1;
                 let err = err + y + y + 1;
             }
@@ -165,6 +187,7 @@ class Screen {
                 let err = err - x - x - 1;
             }
         }
+        return;
     }
 
     /* return a number with 0's in all bits except the pos bit, which is one */
