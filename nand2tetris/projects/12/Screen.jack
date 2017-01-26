@@ -8,33 +8,173 @@
  */
 class Screen {
 
+    static boolean isBlack;
+    static int mod16;
+
     /** Initializes the Screen. */
     function void init() {
+        let isBlack = false;
+        let mod16 = 15;
+        return;
     }
 
     /** Erases the whole screen. */
     function void clearScreen() {
+        var int i;
+        var int base;
+
+        let base = 16384;
+        let i = 0;
+        while (i < 8192) {
+            Memory.poke(i+base, 0);
+            let i = i + 1;
+        }
+        return;
     }
 
     /** Sets the color to be used in further draw commands
      *  where white = false, black = true. */
     function void setColor(boolean b) {
+        let color = b
+        return;
     }
 
     /** Draws the (x, y) pixel. */
     function void drawPixel(int x, int y) {
+        var int raddr;
+        var int baddr;
+        // fix this with fast division
+        let raddr = 32*y + x/16;
+        Memory.poke(raddr, setBitOfNum(Memory.peek(raddr), x & mod16, isBlack));
+        return;
+    }
+
+    function void setBitOfNum(int num, int bitPos, boolean bitVal){
+        let baddr = Math.twoToThe[x&mod16] // x % 16
+        if (bitVal){
+            num = num | baddr;
+        }
+        else{
+            num = num & ~baddr;
+        }
+        return num
     }
 
     /** Draws a line from (x1, y1) to (x2, y2). */
     function void drawLine(int x1, int y1, int x2, int y2) {
+        var int dx, dy, curX, curY, targetX, targetY, diff, raddr, curBlock;
+        var boolean dirLeft, dirUp;
+        let dx = x2-x1;
+        let dy = y2-y1;
+
+        if (dy < 0){ // going down-top
+            let dy = -dy;
+            let dirUp = true;
+        }
+        if (dx < 0){ // going right-left
+            let dx = -dx;
+            let dirLeft = true;
+        }
+
+        let targetX = x1 + dx;
+        let targetY = y1 + dy;
+
+        let raddr = 32*y1 + x1/16;
+        let curBlock = Memory.peek(raddr);
+        while ((curX < dx) & (curY < dy)){ // imagining we're going right-down but fixing it later by getting the correct block
+            // draw the pixel to the block:
+            if (dirLeft){
+                //draw pixel x-curX , y-curY
+                let curBlock = curBlock | Math.twoToThe[(x1-curX)&mod16]; // sets the bit at pos curX%16 to 1
+            }
+            else{
+                //draw pixel x+curX , y-curY
+                let curBlock = curBlock | Math.twoToThe[(x1+curX)&mod16]; // sets the bit at pos curX%16 to 1
+            }
+
+            // update diff and curBlock
+            if(diff < 0){
+                let curY = curY + 1;
+                let diff = diff + dx;
+                //write number to memory, decrease/increase raddr by 32, get new number.
+                do Memory.poke(raddr, curBlock);
+                if (dirUp){
+                    let raddr = raddr - 32;
+                }
+                else{
+                    let raddr = raddr + 32;
+                }
+                let curBlock = Memory.peek(raddr)
+            }
+            else{
+                let curX = curX + 1;
+                let diff = diff - dy;
+                if (dirLeft){
+                    // check if x%16 is 15
+                    if((x1-curX)&mod16 = mod16){
+                        // write number to memory, decrease raddr by 1, get new number
+                        do Memory.poke(raddr, curBlock);
+                        let raddr = raddr - 1;
+                        let curBlock = Memory.peek(raddr);
+                    }
+                }else{
+                    // check if x%16 is 0:
+                    if((x1-curX)&mod16 = 0){
+                        // write number to memory, increase raddr by 1, get new number
+                        do Memory.poke(raddr, curBlock);
+                        let raddr = raddr + 1;
+                        let curBlock = Memory.peek(raddr);
+                    }
+                }
+            }
+        }
+        return;
     }
 
     /** Draws a filled rectangle where the top left corner
      *  is (x1, y1) and the bottom right corner is (x2, y2). */
     function void drawRectangle(int x1, int y1, int x2, int y2) {
+        var int i, width;
+
+        let width = x2-x1;
+        while(i < width){
+            do drawLine(x1, y1+i, x2, y2+i);
+            let i = i + 1;
+        }
     }
 
     /** Draws a filled circle of radius r around (cx, cy). */
     function void drawCircle(int cx, int cy, int r) {
+        /* calculated according to the midpoint circle algorithm */
+        var int x, y, err;
+        let x = r;
+
+        do drawLine(cx-x, cy, cx+x, cy);
+        while(x > y){
+            do drawLine(cx-x,cy+y , cx+x,cy+y);
+            do drawLine(cx-y,cy+x , cx+y,cy+x);
+            do drawLine(cx-x,cy-y , cx+x,cy-y);
+            do drawLine(cx-y,cy-x , cx+y,cy-x);
+
+            if ~(err > 0){ // y += 1; err += 2y + 1
+                let y = y + 1;
+                let err = err + y + y + 1;
+            }
+            else{ // x -= 1; err -= 2x + 1
+                let x = x - 1;
+                let err = err - x - x - 1;
+            }
+        }
     }
+
+    /* return a number with 0's in all bits except the pos bit, which is one */
+    function int getBitSetter(int pos){
+        var int bs, i;
+        let bs = 1;
+        while (i < pos){
+            let bs = bs + 1;
+        }
+        return bs;
+    }
+
 }
