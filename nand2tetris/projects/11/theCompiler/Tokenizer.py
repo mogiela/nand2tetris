@@ -116,10 +116,11 @@ class Tokenizer:
                 continue
             strM = self.reg_strConst.match(lineStr)
             if strM:
-                lineTkns.append(
-                    (self.TYPE_STR, strM.group(1)))  # group 1 is the string without the quotes
-                lineStr = lineStr[len(
-                    strM.group(0)):]  # when we remove the prefix we want to remove the quotes too
+                print(strM.group(1))
+                strTkn = strM.group(1).replace('\t', r'\t')
+                print(strTkn)
+                lineTkns.append((self.TYPE_STR, strTkn))  # group 1 is the string without the quotes
+                lineStr = lineStr[len(strM.group(0)):]  # when we remove the prefix we want to remove the quotes too
                 continue
             idM = self.reg_identifier.match(lineStr)
             if idM:

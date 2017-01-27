@@ -7,10 +7,12 @@
  * A library for handling user input from the keyboard.
  */
 class Keyboard {
+    static int keyData;
 
     /** Initializes the keyboard. */
     function void init() {
-    } 
+        let keyData = 24576;
+    }
 
     /**
      * Returns the ASCII code (as char) of the currently pressed key,
@@ -33,24 +35,51 @@ class Keyboard {
      * F1 - F12 = 141 - 152
      */
     function char keyPressed() {
+        return Memory.peek(keyData);
     }
 
-    /**								
+    /**
      * Reads the next character from the keyboard.
      * waits until a key is pressed and then released, then echoes
      * the key to the screen, and returns the value of the pressed key.
      */
     function char readChar() {
+        var int key;
+        while (key=0){
+            let key = Memory.peek(keydata);
+        }
+        while(~(key=0)){ }
+        do Output.printChar(key);
+        return key;
     }
 
-    /**								
+    /**
      * Prints the message on the screen, reads the next line
      * (until a newline character) from the keyboard, and returns its value.
      */
     function String readLine(String message) {
-    }   
+        var String answer, temp;
+        var char c;
+        var int maxLen;
+        let maxLen = 10;
+        do Output.printString(message);
+        answer = String.new(maxLen);
+        let c = Keyboard.readChar();
+        while(~(c = newline)){
+            if (answer.length() = maxLen){
+                let maxLen = maxLen + 10;
+                temp = String.new(maxLen);
+                temp.setString(answer);
+                answer.dispose()
+                let answer = temp;
 
-    /**								
+            }
+            answer.appendChar(c);
+        }
+        return answer;
+    }
+
+    /**
      * Prints the message on the screen, reads the next line
      * (until a newline character) from the keyboard, and returns its
      * integer value (until the first non numeric character).

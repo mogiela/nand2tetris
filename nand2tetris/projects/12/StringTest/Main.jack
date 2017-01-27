@@ -78,6 +78,20 @@ class Main {
         do i.dispose();
         do s.dispose();
 
+        let s = String.new(10);
+        do s.setString("newString");
+        do Output.printString(s);
+        do Output.println();
+
+        do s.setString("ultranewString");
+        do Output.printString(s);
+        do Output.println();
+
+        do s.setString("actualnew");
+        do Output.printString(s);
+        do Output.println();
+
+        do s.dispose();
         return;
     }
 
