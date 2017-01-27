@@ -85,6 +85,7 @@ class Screen {
         var boolean dirLeft, dirUp;
         let dx = x2-x1;
         let dy = y2-y1;
+        let raddr = screen_base + (32*y1) + (x1/16);
 
         if (dy < 0){ // going down-top
             let dy = -dy;
@@ -95,23 +96,76 @@ class Screen {
             let dirLeft = true;
         }
 
-        let raddr = screen_base + (32*y1) + (x1/16);
+        if (dy = 0){  // straight horizontal line
+            if (dirLeft){
+                if (~((x1&mod16)=mod16)){ // not in a block start
+                    let curBlock = Memory.peek(raddr);
+                    while(~ ((x1-curX)&mod16 = mod16)) { // advance until reaching a new block
+                        let curBlock = Screen.setBitOfNum(curBlock, x1-curX, isBlack);
+                        let curX = curX + 1;
+                        if(curX=dx){ do Memory.poke(raddr, curBlock); return;}
+                    }
+                    do Memory.poke(raddr, curBlock);
+                    let raddr = raddr - 1;
+                }
+                while(curX+16<dx){ // if we can fill a full block, do it
+                    do Memory.poke(raddr, isBlack);
+                    let raddr = raddr - 1;
+                    let curX = curX + 16;
+                }
+                let curBlock = Memory.peek(raddr); // there is less than a block to go
+                while(curX<dx){ // advance until reaching dx
+                    let curBlock = Screen.setBitOfNum(curBlock, x1-curX, isBlack);
+                    let curX = curX + 1;
+                }
+                do Memory.poke(raddr, curBlock);
+                return;     // doneeee...
+            }
+            else{  // going right
+                if (~(x1&mod16=0)){ // not in a block start
+                    let curBlock = Memory.peek(raddr);
+                    while(~ ((x1+curX)&mod16=0) ) { // advance until reaching a new block
+                        let curBlock = Screen.setBitOfNum(curBlock, x1+curX, isBlack);
+                        let curX = curX + 1;
+                        if(curX=dx){ do Memory.poke(raddr, curBlock); return;}
+                    }
+                    // do Output.printInt(curBlock); do Output.println();
+                    do Memory.poke(raddr, curBlock);
+                    let raddr = raddr + 1;
+                }
+                do Output.printInt(raddr); do Output.println();
+                do Output.printInt(dx); do Output.println();
+                while(curX+16<dx){ // if we can fill a full block, do it
+                    do Memory.poke(raddr, isBlack);
+                    let raddr = raddr + 1;
+                    let curX = curX + 16;
+                }
+                let curBlock = Memory.peek(raddr); // there is less than a block to go
+                while(curX<dx){ // advance until reaching dx
+                    let curBlock = Screen.setBitOfNum(curBlock, x1+curX, isBlack);
+                    let curX = curX + 1;
+                }
+                // do Output.printInt(curBlock); do Output.println();
+                do Memory.poke(raddr, curBlock);
+                return;     // doneeee...
+            }
+        }
+
+
         let curBlock = Memory.peek(raddr);
         while ((curX < dx) | (curY < dy)){ // imagining we're going right-down but fixing it later by getting the correct block
             // draw the pixel to the block:
             if (dirLeft){
                 //draw pixel x-curX , y-curY
-                //let curBlock = curBlock | twoToThe[(x1-curX)&mod16]; // sets the bit at pos curX%16 to 1
                 let curBlock = Screen.setBitOfNum(curBlock, (x1-curX), isBlack);
             }
             else{
                 //draw pixel x+curX , y-curY
-                //let curBlock = curBlock | twoToThe[(x1+curX)&mod16]; // sets the bit at pos curX%16 to 1
                 let curBlock = Screen.setBitOfNum(curBlock, (x1+curX), isBlack);
             }
 
             // update diff and curBlock
-            if(diff < 0){
+            if(~(diff > 0)){
                 let curY = curY + 1;
                 let diff = diff + dx;
                 //write number to memory, decrease/increase raddr by 32, get new number.
@@ -154,7 +208,7 @@ class Screen {
     /** Draws a filled rectangle where the top left corner
      *  is (x1, y1) and the bottom right corner is (x2, y2). */
     function void drawRectangle(int x1, int y1, int x2, int y2) {
-
+        // do Output.printInt(screen_base + (32*y1)+x1); do Output.println();
         while (~(y1 > y2)){
             do Screen.drawLine(x1, y1, x2, y1);
             let y1 = y1 + 1;
