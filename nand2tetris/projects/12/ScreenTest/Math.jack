@@ -91,7 +91,7 @@ class Math {
 		    var int q;
 		    var boolean signX, signY;
 		    let signX = false;
-		    let signY = false
+		    let signY = false;
 		    if (x < 0){
 			      let x = Math.abs(x);
 			      let signX = true;

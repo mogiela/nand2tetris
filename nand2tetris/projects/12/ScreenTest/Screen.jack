@@ -103,18 +103,18 @@ class Screen {
                     while(~ ((x1-curX)&mod16 = mod16)) { // advance until reaching a new block
                         let curBlock = Screen.setBitOfNum(curBlock, x1-curX, isBlack);
                         let curX = curX + 1;
-                        if(curX=dx){ do Memory.poke(raddr, curBlock); return;}
+                        if(curX>dx){ do Memory.poke(raddr, curBlock); return;}
                     }
                     do Memory.poke(raddr, curBlock);
                     let raddr = raddr - 1;
                 }
-                while(curX+16<dx){ // if we can fill a full block, do it
+                while((curX+16<dx)){ // if we can fill a full block, do it
                     do Memory.poke(raddr, isBlack);
                     let raddr = raddr - 1;
                     let curX = curX + 16;
                 }
                 let curBlock = Memory.peek(raddr); // there is less than a block to go
-                while(curX<dx){ // advance until reaching dx
+                while(~(curX > dx)){ // advance until reaching dx
                     let curBlock = Screen.setBitOfNum(curBlock, x1-curX, isBlack);
                     let curX = curX + 1;
                 }
@@ -127,23 +127,21 @@ class Screen {
                     while(~ ((x1+curX)&mod16=0) ) { // advance until reaching a new block
                         let curBlock = Screen.setBitOfNum(curBlock, x1+curX, isBlack);
                         let curX = curX + 1;
-                        if(curX=dx){ do Memory.poke(raddr, curBlock); return;}
+                        if(curX>dx){ do Memory.poke(raddr, curBlock); return;}
                     }
-                    // do Output.printInt(curBlock); do Output.println();
                     do Memory.poke(raddr, curBlock);
                     let raddr = raddr + 1;
                 }
-                while(curX+16<dx){ // if we can fill a full block, do it
+                while((curX+16<dx)){ // if we can fill a full block, do it
                     do Memory.poke(raddr, isBlack);
                     let raddr = raddr + 1;
                     let curX = curX + 16;
                 }
                 let curBlock = Memory.peek(raddr); // there is less than a block to go
-                while(curX<dx){ // advance until reaching dx
+                while(~(curX > dx)){ // advance until reaching dx
                     let curBlock = Screen.setBitOfNum(curBlock, x1+curX, isBlack);
                     let curX = curX + 1;
                 }
-                // do Output.printInt(curBlock); do Output.println();
                 do Memory.poke(raddr, curBlock);
                 return;     // doneeee...
             }
@@ -253,12 +251,10 @@ class Screen {
 
     function int fastBinaryMulter(int x, int binPow){
         var int i;
-        do Output.printInt(x); do Output.println();
         while (i < binPow){
             let x = x + x;
             let i = i + 1;
         }
-        do Output.printInt(x); do Output.println();
         return x;
     }
 }

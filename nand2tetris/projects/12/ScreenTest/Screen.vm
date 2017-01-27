@@ -311,7 +311,7 @@ add
 pop local 3
 push local 3
 push local 1
-eq
+gt
 if-goto IF_TRUE5
 goto IF_FALSE5
 label IF_TRUE5
@@ -361,7 +361,8 @@ pop local 9
 label WHILE_EXP2
 push local 3
 push local 1
-lt
+gt
+not
 not
 if-goto WHILE_END2
 push local 9
@@ -421,7 +422,7 @@ add
 pop local 3
 push local 3
 push local 1
-eq
+gt
 if-goto IF_TRUE7
 goto IF_FALSE7
 label IF_TRUE7
@@ -471,7 +472,8 @@ pop local 9
 label WHILE_EXP5
 push local 3
 push local 1
-lt
+gt
+not
 not
 if-goto WHILE_END5
 push local 9
@@ -531,7 +533,8 @@ pop local 9
 label IF_END8
 push local 7
 push constant 0
-lt
+gt
+not
 if-goto IF_TRUE9
 goto IF_FALSE9
 label IF_TRUE9
@@ -797,11 +800,6 @@ label WHILE_END0
 push local 0
 return
 function Screen.fastBinaryMulter 1
-push argument 0
-call Output.printInt 1
-pop temp 0
-call Output.println 0
-pop temp 0
 label WHILE_EXP0
 push local 0
 push argument 1
@@ -818,10 +816,5 @@ add
 pop local 0
 goto WHILE_EXP0
 label WHILE_END0
-push argument 0
-call Output.printInt 1
-pop temp 0
-call Output.println 0
-pop temp 0
 push argument 0
 return
