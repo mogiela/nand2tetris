@@ -85,7 +85,7 @@ class Screen {
         var boolean dirLeft, dirUp;
         let dx = x2-x1;
         let dy = y2-y1;
-        let raddr = screen_base + (Screen.fastBinaryMulter(y1, 5)) + (x/16);
+        let raddr = screen_base + (Screen.fastBinaryMulter(y1, 5)) + (x1/16);
 
         if (dy < 0){ // going down-top
             let dy = -dy;
