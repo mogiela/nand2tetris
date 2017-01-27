@@ -63,7 +63,7 @@ class Screen {
         var int raddr;
         var int baddr;
         // fix this with fast division
-        let raddr = screen_base + (32*y) + (x/16);
+        let raddr = screen_base + (Screen.fastBinaryMulter(y, 5)) + (x/16);
         do Memory.poke(raddr, Screen.setBitOfNum(Memory.peek(raddr), x & mod16, isBlack));
         return;
     }
@@ -85,7 +85,7 @@ class Screen {
         var boolean dirLeft, dirUp;
         let dx = x2-x1;
         let dy = y2-y1;
-        let raddr = screen_base + (32*y1) + (x1/16);
+        let raddr = screen_base + (Screen.fastBinaryMulter(y1, 5)) + (x/16);
 
         if (dy < 0){ // going down-top
             let dy = -dy;
@@ -133,8 +133,6 @@ class Screen {
                     do Memory.poke(raddr, curBlock);
                     let raddr = raddr + 1;
                 }
-                do Output.printInt(raddr); do Output.println();
-                do Output.printInt(dx); do Output.println();
                 while(curX+16<dx){ // if we can fill a full block, do it
                     do Memory.poke(raddr, isBlack);
                     let raddr = raddr + 1;
@@ -208,7 +206,6 @@ class Screen {
     /** Draws a filled rectangle where the top left corner
      *  is (x1, y1) and the bottom right corner is (x2, y2). */
     function void drawRectangle(int x1, int y1, int x2, int y2) {
-        // do Output.printInt(screen_base + (32*y1)+x1); do Output.println();
         while (~(y1 > y2)){
             do Screen.drawLine(x1, y1, x2, y1);
             let y1 = y1 + 1;
@@ -254,4 +251,14 @@ class Screen {
         return bs;
     }
 
+    function int fastBinaryMulter(int x, int binPow){
+        var int i;
+        do Output.printInt(x); do Output.println();
+        while (i < binPow){
+            let x = x + x;
+            let i = i + 1;
+        }
+        do Output.printInt(x); do Output.println();
+        return x;
+    }
 }
