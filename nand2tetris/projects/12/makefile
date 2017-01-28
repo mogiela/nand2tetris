@@ -1,6 +1,6 @@
 
 
-JCC="/home/niv/Gits/nand2tetris/nand2tetris/tools/JackCompiler.sh"
+JCC=/home/niv/Gits/nand2tetris/nand2tetris/tools/JackCompiler.sh
 
 
 

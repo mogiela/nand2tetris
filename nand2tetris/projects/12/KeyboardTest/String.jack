@@ -29,7 +29,7 @@ class String {
     method void setString(String newStr){
         var int j, newLen;
         let newLen = newStr.length();
-        if (~(newLen > mLength)){
+        if (~(newStr.length() > mLength)){
             while(j<newLen){
                 let str[j] = newStr.charAt(j);
                 let j = j + 1;
