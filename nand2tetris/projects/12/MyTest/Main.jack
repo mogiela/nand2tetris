@@ -2,18 +2,89 @@
 
 
 
+
 class Main {
 
     /** Outputs the entire character set to the screen using all the
      *  methods of the Output class. */
     function void main() {
-        do ArrayMain.arraymain();
-        do KeyboardMain.keyboardmain();
-        do MathMain.mathmain();
-        do MemoryMain.memorymain();
+
+        var String s1, s2, s3;
+        let s1 = String.new(5);
+        // return;
+        do s1.setString("work");
+        // return;
+        do Output.printString(s1);
+        do s1.dispose();
+        do Output.printString("noprint");
+        let s2 = String.new(5);
+        do Output.printString("noprint");
+        return;
+
+        do Output.printString("Running Output Tests:"); do Output.println();
         do OutputMain.outputmain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+
+        do Output.printString("Running KeyboardMain Tests:"); do Output.println();
+        do KeyboardMain.keyboardmain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+
+        do Output.printString("Running ScreenMain Tests:"); do Output.println();
         do ScreenMain.screenmain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+
+        do Output.printString("Running ArrayMain Tests:"); do Output.println();
+        do ArrayMain.arraymain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+
+        do Output.printString("Running MathMain Tests:"); do Output.println();
+        do MathMain.mathmain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+
+        do Output.printString("Running MemoryMain Tests:"); do Output.println();
+        do MemoryMain.memorymain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+
+        do Output.printString("Running StringMain Tests:"); do Output.println();
         do StringMain.stringmain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+
+        do Output.printString("Running SysMain Tests:"); do Output.println();
         do SysMain.sysmain();
+        do Output.printString("Check that output is OK and press any key to continue");
+        do Keyboard.readChar();
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+
+        return;
     }
+
 }

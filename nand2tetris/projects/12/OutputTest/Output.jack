@@ -62,6 +62,14 @@ class Output {
     /** Prints c at the cursor location and advances the cursor one
      *  column forward. */
     function void printChar(char c) {
+        if(c = 129){ // backspace
+            do Output.backSpace();
+            return;
+        }
+        if(c = 128){
+            do Output.println();
+            return;
+        }
         do Output.drawCharArr(Output.getMap(c));
         // increase cursor by 1
         if (LoR = 0){
@@ -99,6 +107,7 @@ class Output {
         let s = String.new(6);
         do s.setInt(i);
         do Output.printString(s);
+        do s.dispose();
         return;
     }
 

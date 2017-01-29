@@ -37,47 +37,146 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
-		    var Array search,block;
+		    var Array cur, curSize, next, nextSize, block;
 		    var int sizeP2;
         //do Output.printString("alloc"); do Output.println();
+        if(freelist=0){          // our freelist is empty
+            return null;
+        }
+
+        // basic idea:
+        // if sizeP2 = totalBlockSize: allocate the whole block
+        // otherwise, require totalBlockSize >= sizeP2+2,
+        // that way we can atleast create an empty node and allocate the rest,
+        // this might create many empty nodes, but it would be pretty simple to
+        // defragment them ( simply check if node.address + size = node.next.address, and if so, combine them
 
 		    let sizeP2 = size + 2;
-		    let search = freelist;
+		    let cur = freelist;
+        let curSize = cur[1];
+        let next = cur[0];
+        while(~(next=0)){
+            let nextSize = next[1];
+            // first, try to defragment
+            if((cur+curSize) = next){
+                let cur[1] = curSize + nextSize;
+                let cur[0] = next[0];
+            }
+            let cur = cur[0];   // get the next node
+            let curSize = cur[1]; // update the rest of our variables accordingly
+            let next = cur[0];
+        }
 
-		    if (freelist[0] = 0){
-			      if (~(sizeP2 > search[1])){
-				        let block = search + search[1] - sizeP2;
-				        let block[0] = 0;
-				        let block[1] = size;
-				        let search[1] = search[1] - sizeP2;
-                do Output.printInt(block); do Output.println();
-				        return block + 2;
-			      }
-		    }
+        // restart vars and try to allocate
+        let cur = freelist;
+        let curSize = cur[1];
+        let next = cur[0];
+        // now we might also have next = 0 because of the defrags
+        if(next = 0){           // our freelist has only one node
+        if(curSize=sizeP2){
+            // give the whole block
+            let freelist = 0;
+            return cur+2;
+        }
+        else{           // make sure that we have enough space for an empty node
+            if(curSize>(sizeP2+1)){
+                let cur[1] = curSize - sizeP2;
+                let block = cur + curSize - sizeP2;
+                let block[1] = sizeP2; // write the size of the block that we are giving
+                return block + 2;
+            }
+        }
+        }
 
-		    while (~(search[0] = 0)){
-			      if (~(sizeP2 > search[1])){
-				        let block = search + search[1] - sizeP2;
-				        let block[0] = 0;
-				        let block[1] = size;
-				        let search[1] = search[1] - sizeP2;
-                do Output.printInt(block); do Output.println();
-				        return block + 2;
-			      }
-			      let search = search[0];
-		    }
+        while(~(next=0)){
+            let nextSize = next[1];
+            if(nextSize=sizeP2){
+                // set cur point to next.next and give the whole block
+                let cur[0] = next[0];
+                return next+2;
+            }
+            else{           // make sure that we have enough space for an empty node
+                if(nextSize>(sizeP2+1)){
+                    let next[1] = nextSize - sizeP2;
+                    let block = next + nextSize - sizeP2;
+                    let block[1] = sizeP2; // write the size of the block that we are giving
+                    return block + 2;
+                }
+            }
+            let cur = cur[0];   // get the next node
+            let curSize = cur[1]; // update the rest of our variables accordingly
+            let next = cur[0];
+        }
 
-		    return null;
+        // if we got here that means we're at the last node of the list (cur.next = null
+        // also, we can't carve cur, we already tried that in the last iteration.
+        // so we
+        do Sys.error(8);
+        return null;
 
+
+        // while (~(listIter[0] = 0)){ // cur.next != null
+			  //     if (~(sizeP2 > listIter[1])){ // check if this node has enough space
+				//         let block = listIter + listIter[1] - sizeP2;
+        //         let listIter = listIter[0];
+				//         let block[0] = 0;
+				//         let block[1] = sizeP2;
+				//         let listIter[1] = listIter[1] - sizeP2;
+				//         return block + 2;
+			  //     }
+			  //     let listIter = listIter[0]; // cur = cur.next
+		    // }
+
+
+        // if (~(sizeP2 > listIter[1])){ // try one last time before giving up
+				//     let block = listIter + listIter[1] - sizeP2;
+				//     let block[0] = 0;
+				//     let block[1] = sizeP2;
+				//     let listIter[1] = listIter[1] - sizeP2;
+				//     return block + 2;
+			  // }
+        // // giving up, we have no room in the heap
+		    // return null;
+
+    }
+
+    function void smartDeAlloc(int block){
+        var int cur, curSize, next, nextSize;
+        let cur = freelist;
+        let curSize = cur[1];
+        let next = cur[0];
+        let nextSize = next[1];
+        while(~(next=0)){
+            // next is the previous of block
+            if((next+nextSize) = block){
+                let next[1] = nextSize + block[1];
+                return;
+            }
+            else{               // block is the previous of next
+                if(block + block[1] = next){
+                    let block[1] = block[1] + nextSize;
+                    let block[0] = next[0];
+                    let cur[0] = block;
+                    return;
+                }
+            }
+            let cur = cur[0];   // get next node
+            let curSize = cur[1]; // update the rest
+            let next = cur[0];
+            let nextSize = next[1];
+        }
+        // if we're here then block does not have any adjacent blocks in the freelist
+        // just append it to the beggining
+        let block[0] = freelist;
+        let freelist = block-2;
+        return;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
-		    var Array temp;
-
-		    let o[-2] = freelist;
-		    let freelist = o;
+		    let o[-2] = freelist;   // o[-2] should point to the next free place in the list
+		    let freelist = o-2;    // o is now the first free place in the list
 		    return;
     }
 }

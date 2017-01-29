@@ -17,7 +17,7 @@ class Output {
     static int curAddress;
     static int screen_base, screen_size;
     static int LoR;// 0 means left 1 means right
-
+    static String outputString;
 
     /** Initializes the screen and locates the cursor at the screen's top-left. */
     function void init() {
@@ -25,6 +25,7 @@ class Output {
         let screen_base = 16384;
         let screen_size = 8096; // = 8096, not the whole screen which is 8192
         let curAddress = 0;
+        let outputString = String.new(6);
         return;
     }
 
@@ -62,6 +63,14 @@ class Output {
     /** Prints c at the cursor location and advances the cursor one
      *  column forward. */
     function void printChar(char c) {
+        if(c = 129){ // backspace
+            do Output.backSpace();
+            return;
+        }
+        if(c = 128){
+            do Output.println();
+            return;
+        }
         do Output.drawCharArr(Output.getMap(c));
         // increase cursor by 1
         if (LoR = 0){
@@ -73,7 +82,7 @@ class Output {
             if(curAddress&31=0){ // if were at a new line
                 let curAddress = (curAddress + 320);
             }
-            if(curAddress = (screen_size)){ // if we're at the end of the screen, go to the beggining
+            if(~(curAddress < screen_size)){ // if we're at the end of the screen, go to the beggining
                 let curAddress = 0;
             }
         }
@@ -95,10 +104,9 @@ class Output {
     /** Prints i starting at the cursor location, and advances the
      *  cursor appropriately. */
     function void printInt(int i) {
-        var String s;
-        let s = String.new(6);
-        do s.setInt(i);
-        do Output.printString(s);
+
+        do outputString.setInt(i);
+        do Output.printString(outputString);
         return;
     }
 
@@ -110,6 +118,9 @@ class Output {
             let curAddress = curAddress + 1;
         }
         let LoR = 0;
+        if(~(curAddress < screen_size)){ // if we're at the end of the screen, go to the beggining
+            let curAddress = 0;
+        }
         return;
     }
 

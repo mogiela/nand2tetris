@@ -1,0 +1,29 @@
+
+
+
+
+
+
+
+
+
+
+
+class Main {
+
+	  function void main(){
+		    var int i;
+		    let i = 0;
+		    while (~(i = (-1))) {
+			      do Output.printInt(i);
+			      do Output.println();
+            // if (Math.modulo(i, 23) = 0){
+            //     do Output.moveCursor(0,0);
+            // }
+			      let i = i + 1;
+		    }
+		    return ;
+
+	  }
+
+}

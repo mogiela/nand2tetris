@@ -126,7 +126,6 @@ class String {
         return;
     }
     method void appendInt(int value){
-        var int  lastDig;
 
 		    if (value < 10){
 			      do appendChar(Math.modulo(value, 10) + 48);
