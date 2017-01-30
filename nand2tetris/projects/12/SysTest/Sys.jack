@@ -16,7 +16,8 @@ class Sys {
 		    do Keyboard.init();
 		    do Output.init();
 		    do Main.main();
-        Sys.halt();
+        do Sys.halt();
+        return;
     }
 
     /** Halts the program execution. */
@@ -27,13 +28,15 @@ class Sys {
 
     /** Waits approximately duration milliseconds and returns.  */
     function void wait(int duration) {
-		    var int i,j;
+		    var int i,timeFactor,j;
+
+        let timeFactor = 196;
 		    while(i < duration){
-			      let j = j + 1;
-			      if(j = 700){
+			      if(j = timeFactor){
 				        let j = 0;
-				        let i = i + 1;
+                let i = i + 1;
 			      }
+            let j = j + 1;
         }
         return;
     }

@@ -1,8 +1,8 @@
 
+TOOLS =./../../tools
+JCC=${TOOLS}/JackCompiler.sh
 
-JCC=/home/niv/Gits/nand2tetris/nand2tetris/tools/JackCompiler.sh
-
-VMULATOR=/home/niv/Gits/nand2tetris/nand2tetris/tools/VMEmulator.sh
+VMULATOR=${TOOLS}/VMEmulator.sh
 
 
 fullOS: Array.vm Keyboard.vm Math.vm Memory.vm Output.vm Screen.vm String.vm Sys.vm

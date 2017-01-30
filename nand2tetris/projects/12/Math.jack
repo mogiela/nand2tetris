@@ -93,6 +93,11 @@ class Math {
 		    var boolean signX, signY;
 		    let signX = false;
 		    let signY = false;
+        if(y=0){
+            do Sys.error(3);
+            do Sys.halt();
+        }
+
 		    if (x < 0){
 			      let x = Math.abs(x);
 			      let signX = true;
@@ -113,6 +118,11 @@ class Math {
     function int sqrt(int x) {
 		    var int y, i, condi, tion;
 		    let i = 7;
+        if(x<0){
+            do Sys.error(4);
+            do Sys.halt();
+        }
+
 		    while (~(i < 0)){
 			      let condi = y + twoToThe[i];
 			      let tion = Math.multiply(condi,condi);

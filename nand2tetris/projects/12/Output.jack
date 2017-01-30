@@ -18,14 +18,20 @@ class Output {
     static int screen_base, screen_size;
     static int LoR;// 0 means left 1 means right
     static String outputString;
+    static int charLineSize, pixelLineSize, lineXPos, pixLineInChar;
 
     /** Initializes the screen and locates the cursor at the screen's top-left. */
     function void init() {
         do Output.initMap();
         let screen_base = 16384;
-        let screen_size = 8096; // = 8096, not the whole screen which is 8192
+        let screen_size = 8096; // not the whole screen which is 8192
         let curAddress = 0;
         let outputString = String.new(6);
+        let pixelLineSize = 32;
+        let pixLineInChar = 11;
+        let charLineSize = pixelLineSize*pixLineInChar;
+        let lineXPos = pixelLineSize-1;
+
         return;
     }
 
@@ -33,7 +39,7 @@ class Output {
     function void drawCharArr(Array c){
         var int row, i, addressIter;
         let addressIter = screen_base + curAddress;
-        while (i<11){
+        while (i<pixLineInChar){
             // find out if we're on a left cursor char or right cursor char
             if(LoR = 0){
                 // 255 is 0000000011111111 in binary, -256 is 1111111100000000
@@ -44,7 +50,7 @@ class Output {
                 let row = Math.fastBinaryMulter(c[i],8); // create a word that inputs pixels in the right pos
                 do Memory.poke(addressIter,(Memory.peek(addressIter)&(255)) | row); // modify the address with the word
             }
-            let addressIter = addressIter + 32;
+            let addressIter = addressIter + pixelLineSize;
             let i = i + 1;     // next row
         }
         return;
@@ -54,8 +60,13 @@ class Output {
     /** Moves the cursor to the j’th column of the i’th row,
      *  and erases the character that was there. */
     function void moveCursor(int i, int j) {
-        // 352 = 11 * 32
-        let curAddress = ((i*352)+Math.fastBinaryDivider(j,1)); // tha actual adress on the screen
+
+        if((i>22) | (i<0) | (j>63) | (j<0)){
+            do Sys.error(20);
+            do Sys.halt();
+        }
+
+        let curAddress = ((i*charLineSize)+Math.fastBinaryDivider(j,1)); // tha actual adress on the screen
         let LoR = j&1;
         return;
     }
@@ -67,7 +78,7 @@ class Output {
             do Output.backSpace();
             return;
         }
-        if(c = 128){
+        if(c = 128){ // newline
             do Output.println();
             return;
         }
@@ -79,8 +90,8 @@ class Output {
         else{
             let LoR = 0;
             let curAddress = curAddress + 1;
-            if(curAddress&31=0){ // if were at a new line
-                let curAddress = (curAddress + 320);
+            if(curAddress&lineXPos=0){ // if we're at a new line
+                let curAddress = (curAddress + charLineSize-pixelLineSize);
             }
             if(~(curAddress < screen_size)){ // if we're at the end of the screen, go to the beggining
                 let curAddress = 0;
@@ -112,9 +123,10 @@ class Output {
 
     /** Advances the cursor to the beginning of the next line. */
     function void println() {
-        // basically go 10 pixels down and then 1 past the end of the screen
-        let curAddress = curAddress + 320;
-        while(~((curAddress & 31) = 0)){
+        // basically go 11 pixels down and then remove the remainder from 32,
+        // leaving us at the beggining of the line
+        let curAddress = (curAddress + charLineSize)&(-pixelLineSize);
+        while(~((curAddress & lineXPos) = 0)){
             let curAddress = curAddress + 1;
         }
         let LoR = 0;
@@ -126,12 +138,56 @@ class Output {
 
     /** Moves the cursor one column back. */
     function void backSpace() {
+        do Output.cursorLeft();
+        do Output.drawCharArr(Output.getMap(32));
+        return;
+    }
+
+    function void cursorLeft(){
         if(LoR = 1){ let LoR = 0; }
         else{
             let curAddress = curAddress - 1;
             let LoR = 1;
+            if ((curAddress&lineXPos)=lineXPos){ // if we should go up one line
+                if(curAddress > 31){    // we're not at the first line
+                    let curAddress = curAddress - (charLineSize - pixelLineSize);
+                }
+                else{
+                    let curAddress = curAddress + 1; // get back to where we were
+                }
+            }
         }
-        do Output.drawCharArr(Output.getMap(32));
+        return;
+    }
+
+    function void cursurRight(){
+        if(LoR = 0){ let LoR = 1; }
+        else{
+            let curAddress = curAddress + 1;
+            let LoR = 0;
+            if ((curAddress&lineXPos)=0){ // if we should go down one line
+                if(curAddress < (screen_size-charLineSize)){ // we're not at the lastLine
+                    let curAddress = curAddress + charLineSize - pixelLineSize;
+                }
+                else{
+                    let curAddress = curAddress - 1; // get back to where we were
+                }
+            }
+        }
+        return;
+    }
+
+    function void cursorUp(){
+        if(31<curAddress){    // we're not at the first line
+            let curAddress = curAddress - charLineSize;// up 11 lines
+        }
+        return;
+    }
+
+    function void cursorDown(){
+        if(curAddress < (screen_size-charLineSize)){    // we're not at the lastLine
+            let curAddress = curAddress + charLineSize;
+        }
         return;
     }
 

@@ -39,9 +39,15 @@ class Memory {
     function int alloc(int size) {
 		    var Array cur, curSize, next, nextSize, block;
 		    var int sizeP2;
+
+        if(~(size>0)){
+            do Sys.error(5);
+            do Sys.halt();
+        }
         //do Output.printString("alloc"); do Output.println();
         if(freelist=0){          // our freelist is empty
-            return null;
+            do Sys.error(6);
+            do Sys.halt();
         }
 
         // basic idea:
@@ -73,19 +79,19 @@ class Memory {
         let next = cur[0];
         // now we might also have next = 0 because of the defrags
         if(next = 0){           // our freelist has only one node
-        if(curSize=sizeP2){
-            // give the whole block
-            let freelist = 0;
-            return cur+2;
-        }
-        else{           // make sure that we have enough space for an empty node
-            if(curSize>(sizeP2+1)){
-                let cur[1] = curSize - sizeP2;
-                let block = cur + curSize - sizeP2;
-                let block[1] = sizeP2; // write the size of the block that we are giving
-                return block + 2;
+            if(curSize=sizeP2){
+                // give the whole block
+                let freelist = 0;
+                return cur+2;
             }
-        }
+            else{           // make sure that we have enough space for an empty node
+                if(curSize>(sizeP2+1)){
+                    let cur[1] = curSize - sizeP2;
+                    let block = cur + curSize - sizeP2;
+                    let block[1] = sizeP2; // write the size of the block that we are giving
+                    return block + 2;
+                }
+            }
         }
 
         while(~(next=0)){
@@ -111,7 +117,8 @@ class Memory {
         // if we got here that means we're at the last node of the list (cur.next = null
         // also, we can't carve cur, we already tried that in the last iteration.
         // so we
-        do Sys.error(8);
+        do Sys.error(6);
+        do Sys.halt();
         return null;
 
 

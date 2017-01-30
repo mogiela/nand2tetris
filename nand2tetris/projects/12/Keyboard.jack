@@ -71,14 +71,20 @@ class Keyboard {
         let answer = String.new(maxLen);
         let c = Keyboard.readChar();
         while(~(c = newline)){
-            if (answer.length() = maxLen){
+            if (answer.length() = maxLen){// if we have no more room, reallocate the string
                 let maxLen = maxLen + 10;
                 let temp = String.new(maxLen);
                 do temp.setString(answer);
                 do answer.dispose();
                 let answer = temp;
             }
-            do answer.appendChar(c);
+            if(c<128){         // append the char only if we got a valid char (not backspace or any other funky stuff)
+                do answer.appendChar(c);
+            }
+            if (c=129){         // backspace
+                do answer.eraseLastChar();
+            }
+
             let c = Keyboard.readChar();
         }
         return answer;
