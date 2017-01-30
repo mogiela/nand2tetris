@@ -63,7 +63,7 @@ class Screen {
         var int raddr;
         var int baddr;
         // fix this with fast division
-        let raddr = screen_base + (Screen.fastBinaryMulter(y, 5)) + (x/16);
+        let raddr = screen_base + (Math.fastBinaryMulter(y, 5)) + (x/16);
         do Memory.poke(raddr, Screen.setBitOfNum(Memory.peek(raddr), x & mod16, isBlack));
         return;
     }
@@ -85,7 +85,7 @@ class Screen {
         var boolean dirLeft, dirUp;
         let dx = x2-x1;
         let dy = y2-y1;
-        let raddr = screen_base + (Screen.fastBinaryMulter(y1, 5)) + (x1/16);
+        let raddr = screen_base + (Math.fastBinaryMulter(y1, 5)) + (x1/16);
 
         if (dy < 0){ // going down-top
             let dy = -dy;
@@ -249,28 +249,7 @@ class Screen {
         return bs;
     }
 
-    function int fastBinaryMulter(int x, int binPow){
-        var int i;
-        while (i < binPow){
-            let x = x + x;
-            let i = i + 1;
-        }
-        return x;
-    }
 
-    function int fastBinaryDivider(int x,int pow){
-        var int res, i,j;
-        while(i<pow){           // for every halving we need to do
-            let j = 15;         // start at MSB
-            while(j>0){         // while not at 0
-                if(x&twoToThe[j]){ // if it is 1
-                    let res = res | twoToThe[j-1]; // write 1 to the next bit of res
-                }
-                let j = j - 1;
-            }                   // notice in every iteration we lose the last bit
-            let i = i + 1;
-        }
-        return res;
-    }
+
 
 }

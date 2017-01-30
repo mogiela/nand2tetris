@@ -2,6 +2,7 @@
 
 JCC=/home/niv/Gits/nand2tetris/nand2tetris/tools/JackCompiler.sh
 
+VMULATOR=/home/niv/Gits/nand2tetris/nand2tetris/tools/VMEmulator.sh
 
 
 fullOS: Array.vm Keyboard.vm Math.vm Memory.vm Output.vm Screen.vm String.vm Sys.vm
@@ -24,4 +25,8 @@ clean:
 AllTest.%: fullOS
 	${JCC} $*/
 	cp fullOS/*.vm $*/
+
+VMU:
+	${VMULATOR}
+
 

@@ -41,7 +41,7 @@ class Output {
                 do Memory.poke(addressIter,(Memory.peek(addressIter)&(-256)) | row); // modify the address with the word
             }
             else{
-                let row = Screen.fastBinaryMulter(c[i],8); // create a word that inputs pixels in the right pos
+                let row = Math.fastBinaryMulter(c[i],8); // create a word that inputs pixels in the right pos
                 do Memory.poke(addressIter,(Memory.peek(addressIter)&(255)) | row); // modify the address with the word
             }
             let addressIter = addressIter + 32;
@@ -55,7 +55,7 @@ class Output {
      *  and erases the character that was there. */
     function void moveCursor(int i, int j) {
         // 352 = 11 * 32
-        let curAddress = ((i*352)+Screen.fastBinaryDivider(j,1)); // tha actual adress on the screen
+        let curAddress = ((i*352)+Math.fastBinaryDivider(j,1)); // tha actual adress on the screen
         let LoR = j&1;
         return;
     }

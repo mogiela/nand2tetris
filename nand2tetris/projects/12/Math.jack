@@ -143,4 +143,30 @@ class Math {
 	  function int modulo(int num, int mod){
 		    return num - (mod * (num/mod));
     }
+
+
+    function int fastBinaryMulter(int x, int binPow){
+        var int i;
+        while (i < binPow){
+            let x = x + x;
+            let i = i + 1;
+        }
+        return x;
+    }
+
+    function int fastBinaryDivider(int x,int pow){
+        var int res, i,j;
+        while(i<pow){           // for every halving we need to do
+            let j = 15;         // start at MSB
+            while(j>0){         // while not at 0
+                if(x&twoToThe[j]){ // if it is 1
+                    let res = res | twoToThe[j-1]; // write 1 to the next bit of res
+                }
+                let j = j - 1;
+            }                   // notice in every iteration we lose the last bit
+            let i = i + 1;
+        }
+        return res;
+    }
+
 }
