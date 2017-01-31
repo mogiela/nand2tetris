@@ -1,0 +1,19 @@
+class Main {
+
+	function void main(){
+		var Array a;
+		var int i;
+		let i = 0;
+
+		while (i < 15000){
+			let i = i + 1;
+			let a = Memory.alloc(5000);
+			do Memory.deAlloc(a);
+		}
+		do Output.printString("Done!");
+
+		return ;
+
+	}
+
+}

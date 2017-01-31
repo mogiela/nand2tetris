@@ -77,22 +77,22 @@ class Memory {
         let cur = freelist;
         let curSize = cur[1];
         let next = cur[0];
-        // now we might also have next = 0 because of the defrags
-        if(next = 0){           // our freelist has only one node
-            if(curSize=sizeP2){
-                // give the whole block
-                let freelist = 0;
-                return cur+2;
-            }
-            else{           // make sure that we have enough space for an empty node
-                if(curSize>(sizeP2+1)){
-                    let cur[1] = curSize - sizeP2;
-                    let block = cur + curSize - sizeP2;
-                    let block[1] = sizeP2; // write the size of the block that we are giving
-                    return block + 2;
-                }
+
+        // try to allocate the first block
+        if(curSize=sizeP2){
+            // give the whole block
+            let freelist = next;
+            return cur+2;
+        }
+        else{           // make sure that we have enough space for an empty node
+            if(curSize>(sizeP2+1)){
+                let cur[1] = curSize - sizeP2;
+                let block = cur + curSize - sizeP2;
+                let block[1] = sizeP2; // write the size of the block that we are giving
+                return block + 2;
             }
         }
+
 
         while(~(next=0)){
             let nextSize = next[1];
@@ -124,7 +124,7 @@ class Memory {
 
         // while (~(listIter[0] = 0)){ // cur.next != null
 			  //     if (~(sizeP2 > listIter[1])){ // check if this node has enough space
-				//         let block = listIter + listIter[1] - sizeP2;
+				//         let bloc משחות שנוסו על בעלי חk = listIter + listIter[1] - sizeP2;
         //         let listIter = listIter[0];
 				//         let block[0] = 0;
 				//         let block[1] = sizeP2;
