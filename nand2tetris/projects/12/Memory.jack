@@ -79,30 +79,29 @@ class Memory {
         let next = cur[0];
 
         // try to allocate the first block
-        if(curSize=sizeP2){
-            // give the whole block
-            let freelist = next;
-            return cur+2;
+        if(curSize>(sizeP2+2)){ // make sure we will have enough room for a non empty node
+            let cur[1] = curSize - sizeP2;
+            let block = cur + curSize - sizeP2;
+            let block[1] = sizeP2; // write the size of the block that we are giving
+            return block + 2;
         }
-        else{           // make sure that we have enough space for an empty node
-            if(curSize>(sizeP2+1)){
-                let cur[1] = curSize - sizeP2;
-                let block = cur + curSize - sizeP2;
-                let block[1] = sizeP2; // write the size of the block that we are giving
-                return block + 2;
+        else{
+            if(~(curSize<sizeP2)){ // we can give the whole block
+                // give the whole block
+                let freelist = next;
+                return cur+2;
             }
         }
 
-
         while(~(next=0)){
             let nextSize = next[1];
-            if(nextSize=sizeP2){
+            if(nextSize>(sizeP2+2)){
                 // set cur point to next.next and give the whole block
                 let cur[0] = next[0];
                 return next+2;
             }
             else{           // make sure that we have enough space for an empty node
-                if(nextSize>(sizeP2+1)){
+                if(~(nextSize<sizeP2)){
                     let next[1] = nextSize - sizeP2;
                     let block = next + nextSize - sizeP2;
                     let block[1] = sizeP2; // write the size of the block that we are giving
@@ -120,31 +119,6 @@ class Memory {
         do Sys.error(6);
         do Sys.halt();
         return null;
-
-
-        // while (~(listIter[0] = 0)){ // cur.next != null
-			  //     if (~(sizeP2 > listIter[1])){ // check if this node has enough space
-				//         let bloc משחות שנוסו על בעלי חk = listIter + listIter[1] - sizeP2;
-        //         let listIter = listIter[0];
-				//         let block[0] = 0;
-				//         let block[1] = sizeP2;
-				//         let listIter[1] = listIter[1] - sizeP2;
-				//         return block + 2;
-			  //     }
-			  //     let listIter = listIter[0]; // cur = cur.next
-		    // }
-
-
-        // if (~(sizeP2 > listIter[1])){ // try one last time before giving up
-				//     let block = listIter + listIter[1] - sizeP2;
-				//     let block[0] = 0;
-				//     let block[1] = sizeP2;
-				//     let listIter[1] = listIter[1] - sizeP2;
-				//     return block + 2;
-			  // }
-        // // giving up, we have no room in the heap
-		    // return null;
-
     }
 
     function void smartDeAlloc(int block){
