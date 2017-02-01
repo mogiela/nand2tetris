@@ -214,30 +214,6 @@ class Screen {
                 do Memory.poke(raddr, curBlock);
                 return;     // doneeee...
 
-
-                // //------------------
-                // if (~(x1&mod16=0)){ // not in a block start
-                //     let curBlock = Memory.peek(raddr);
-                //     while(~ ((x1+curX)&mod16=0) ) { // advance until reaching a new block
-                //         let curBlock = Screen.setBitOfNum(curBlock, x1+curX, isBlack);
-                //         let curX = curX + 1;
-                //         if(curX>dx){ do Memory.poke(raddr, curBlock); return;}
-                //     }
-                //     do Memory.poke(raddr, curBlock);
-                //     let raddr = raddr + 1;
-                // }
-                // while((curX+16<dx)){ // if we can fill a full block, do it
-                //     do Memory.poke(raddr, isBlack);
-                //     let raddr = raddr + 1;
-                //     let curX = curX + 16;
-                // }
-                // let curBlock = Memory.peek(raddr); // there is less than a block to go
-                // while(~(curX > dx)){ // advance until reaching dx
-                //     let curBlock = Screen.setBitOfNum(curBlock, x1+curX, isBlack);
-                //     let curX = curX + 1;
-                // }
-                // do Memory.poke(raddr, curBlock);
-                // return;     // doneeee...
             }
         }
 
@@ -298,10 +274,125 @@ class Screen {
     /** Draws a filled rectangle where the top left corner
      *  is (x1, y1) and the bottom right corner is (x2, y2). */
     function void drawRectangle(int x1, int y1, int x2, int y2) {
-        while (~(y1 > y2)){
-            do Screen.drawLine(x1, y1, x2, y1);
-            let y1 = y1 + 1;
+        var int x1mod16, painter, x2mod16, curBlock;
+
+
+
+        let x1mod16 = x1&mod16;
+        let x2mod16 = x2&mod16;
+
+        let x1 = screen_base + (Math.fastBinaryMulter(y1, 5)) // x1 is the pivot
+            + (x1/16);
+        let y2 = x1 + (Math.fastBinaryMulter(y2-y1, 5)) + 1; // y2 is the y-axis boundary, (the plus 1 is to evaluate <= instead of <)
+        let x2 = screen_base + (Math.fastBinaryMulter(y1, 5)) // x2 is the x-axis boundary
+                             + (x2/16);
+        let y1 = x1;                                    // y1 is the iterator
+
+
+        if (~(x1mod16=0)){ //  means we're not in a block start
+            if(x1=x2){ // x1 and x2 are in the same block so we cant fill the whole block
+                if(isBlack){
+                    let painter = ((twoToThe[x2mod16]-1)-(twoToThe[x1mod16-1]-1));
+                    while (y1 < y2){
+                        let curBlock = Memory.peek(y1);
+                        let curBlock = curBlock | painter; // black
+                        do Memory.poke(y1, curBlock);
+                        let y1 = y1 + 32;
+                    }
+                    return;
+                }
+                else{
+                    let painter = (~(twoToThe[x2mod16]-1)-(twoToThe[x1mod16-1]-1));
+                    while (y1 < y2){
+                        let curBlock = Memory.peek(y1);
+                        let curBlock = curBlock & painter; // black
+                        do Memory.poke(y1, curBlock);
+                        let y1 = y1 + 32;
+                    }
+                    return;
+                }
+            }
+            else{               // color the whole block
+                if(isBlack){
+                    let painter = (-twoToThe[x1mod16-1]);
+                    while (y1 < y2){
+                        let curBlock = Memory.peek(y1);
+                        let curBlock = curBlock | painter; // black
+                        do Memory.poke(y1, curBlock);
+                        let y1 = y1 + 32;
+                    }
+                }
+                else{
+                    let painter = ~(-twoToThe[x1mod16-1]);
+                    while (y1 < y2){
+                        let curBlock = Memory.peek(y1);
+                        let curBlock = curBlock & painter; // black
+                        do Memory.poke(y1, curBlock);
+                        let y1 = y1 + 32;
+                    }
+                }
+            }
         }
+
+
+
+        // we try to color the whole block
+        if(isBlack){
+            let painter = -1;
+        }
+        else{
+            let painter = 0;
+        }
+        let x1 = x1 + 1;
+        let y1 = x1;
+        let y2 = y2 + 1;
+        while(x1<x2){           // going through all columns
+            if(isBlack){
+                while(y1<y2){           // a single column fill
+                    let curBlock = Memory.peek(y1);
+                    let curBlock = curBlock | painter; // black
+                    do Memory.poke(y1, curBlock);
+                    let y1 = y1 + 32;
+                }
+            }
+            else{
+                while(y1<y2){
+                    let curBlock = Memory.peek(y1);
+                    let curBlock = curBlock & painter; // white
+                    do Memory.poke(y1, curBlock);
+                    let y1 = y1 + 32;
+                }
+            }
+            let x1 = x1 + 1;
+            let y1 = x1;
+            let y2 = y2 + 1;
+        }
+
+        // fill th last block
+        if(isBlack){
+            let painter = (twoToThe[x2mod16]-1);
+            while(y1<y2){           // a single column full
+                let curBlock = Memory.peek(y1);
+                let curBlock = curBlock | painter; // black
+                do Memory.poke(y1, curBlock);
+                let y1 = y1 + 32;
+            }
+        }
+        else{
+            let painter = (~(twoToThe[x2mod16]-1));
+            while(y1<y2){           // a single column full
+                let curBlock = Memory.peek(y1);
+                let curBlock = curBlock & painter; // white
+                do Memory.poke(y1, curBlock);
+                let y1 = y1 + 32;
+            }
+        }
+
+
+        // while (~(y1 > y2)){
+        //     do Screen.drawLine(x1, y1, x2, y1);
+        //     let y1 = y1 + 1;
+        // }
         return;
     }
 
@@ -315,11 +406,11 @@ class Screen {
 
         do Screen.drawLine(cx-x, cy, cx+x, cy);
         while(~(x < y)){
-
-            do Screen.drawLine(cx-y-1,cy+x , cx+y,cy+x);
-            do Screen.drawLine(cx-x-1,cy+y , cx+x,cy+y);
-            do Screen.drawLine(cx-x-1,cy-y , cx+x,cy-y);
-            do Screen.drawLine(cx-y-1,cy-x , cx+y,cy-x);
+            
+            do Screen.drawLine(cx-y,cy-x , cx+y,cy-x);
+            do Screen.drawLine(cx-x,cy-y , cx+x,cy-y);
+            do Screen.drawLine(cx-x,cy+y , cx+x,cy+y);
+            do Screen.drawLine(cx-y,cy+x , cx+y,cy+x);
 
             if (~(err > 0)){ // y += 1; err += 2y + 1
                 let y = y + 1;
