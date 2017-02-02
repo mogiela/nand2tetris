@@ -11,9 +11,11 @@
 
 class Memory {
 	  static Array ram, heap, freelist;
+    static boolean dbg;
 
     /** Initializes the class. */
     function void init() {
+        let dbg = true;
 		    let ram = 0;
 		    let heap = 2048;
 		    let freelist = 2048;
@@ -62,15 +64,20 @@ class Memory {
         let curSize = cur[1];
         let next = cur[0];
         while(~(next=0)){
+            if(dbg){ do Memory.breakpoint(1); }
             let nextSize = next[1];
             // first, try to defragment
             if((cur+curSize) = next){
                 let cur[1] = curSize + nextSize;
                 let cur[0] = next[0];
+                let next = cur[0];
+                let curSize = cur[1];
             }
-            let cur = cur[0];   // get the next node
-            let curSize = cur[1]; // update the rest of our variables accordingly
-            let next = cur[0];
+            else{
+                let cur = cur[0];   // get the next node
+                let curSize = cur[1]; // update the rest of our variables accordingly
+                let next = cur[0];
+            }
         }
 
         // restart vars and try to allocate
@@ -81,14 +88,16 @@ class Memory {
         // try to allocate the first block
         if(curSize>(sizeP2+2)){ // make sure we will have enough room for a non empty node
             let cur[1] = curSize - sizeP2;
-            let block = cur + curSize - sizeP2;
+            let block = cur + curSize - sizeP2; // without the +1 it points to the end of the current block, not the start of the next
             let block[1] = sizeP2; // write the size of the block that we are giving
+            if(dbg){ do Memory.breakpoint(2); }
             return block + 2;
         }
         else{
-            if(~(curSize<sizeP2)){ // we can give the whole block
+            if(curSize>(sizeP2-1)){ // we can give the whole block
                 // give the whole block
                 let freelist = next;
+                if(dbg){ do Memory.breakpoint(3); }
                 return cur+2;
             }
         }
@@ -98,13 +107,15 @@ class Memory {
             if(nextSize>(sizeP2+2)){
                 // set cur point to next.next and give the whole block
                 let cur[0] = next[0];
+                if(dbg){ do Memory.breakpoint(4);}
                 return next+2;
             }
             else{           // make sure that we have enough space for an empty node
-                if(~(nextSize<sizeP2)){
+                if(curSize>(sizeP2-1)){
                     let next[1] = nextSize - sizeP2;
                     let block = next + nextSize - sizeP2;
                     let block[1] = sizeP2; // write the size of the block that we are giving
+                    if(dbg){ do Memory.breakpoint (5);}
                     return block + 2;
                 }
             }
@@ -159,5 +170,9 @@ class Memory {
 		    let o[-2] = freelist;   // o[-2] should point to the next free place in the list
 		    let freelist = o-2;    // o is now the first free place in the list
 		    return;
+    }
+
+    function void breakpoint(int line){
+        return;
     }
 }
