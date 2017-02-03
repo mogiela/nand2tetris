@@ -104,19 +104,19 @@ class Memory {
 
         while(~(next=0)){
             let nextSize = next[1];
-            if(nextSize>(sizeP2+2)){
-                // set cur point to next.next and give the whole block
-                let cur[0] = next[0];
-                if(dbg){ do Memory.breakpoint(4);}
-                return next+2;
+            if(nextSize>(sizeP2+2)){ // make sure that we have enough space for an empty node
+                let next[1] = nextSize - sizeP2;
+                let block = next + nextSize - sizeP2;
+                let block[1] = sizeP2; // write the size of the block that we are giving
+                if(dbg){ do Memory.breakpoint (5);}
+                return block + 2;
             }
-            else{           // make sure that we have enough space for an empty node
+            else{
                 if(curSize>(sizeP2-1)){
-                    let next[1] = nextSize - sizeP2;
-                    let block = next + nextSize - sizeP2;
-                    let block[1] = sizeP2; // write the size of the block that we are giving
-                    if(dbg){ do Memory.breakpoint (5);}
-                    return block + 2;
+                    // set cur point to next.next and give the whole block
+                    let cur[0] = next[0];
+                    if(dbg){ do Memory.breakpoint(4);}
+                    return next+2;
                 }
             }
             let cur = cur[0];   // get the next node

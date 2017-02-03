@@ -8,9 +8,30 @@ class Main {
 
     /** Performs several memory manipulations. */
     function void main() {
+        var boolean dbg;
         var int temp;
         var Array a, b, c;
+        let dbg = true;
 
+
+
+        let a = Array.new(8);
+        do a.dispose();
+
+        let a = Array.new(9);
+        let c = Array.new(11);
+
+        do a.dispose();
+        do c.dispose();
+        let b = Array.new(7);
+
+
+
+
+
+
+
+        if (dbg) { do Memory.breakpoint(10); }
         do Memory.poke(8000, 333);       // RAM[8000] = 333
         let temp = Memory.peek(8000);
         do Memory.poke(8001, temp + 1);  // RAM[8001] = 334
