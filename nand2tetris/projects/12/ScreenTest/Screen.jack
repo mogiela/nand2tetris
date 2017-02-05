@@ -331,6 +331,9 @@ class Screen {
                         let y1 = y1 + 32;
                     }
                 }
+                let x1 = x1 + 1;
+                let y1 = x1;
+                let y2 = y2 + 1;
             }
         }
 
@@ -343,9 +346,6 @@ class Screen {
         else{
             let painter = 0;
         }
-        let x1 = x1 + 1;
-        let y1 = x1;
-        let y2 = y2 + 1;
         while(x1<x2){           // going through all columns
             if(isBlack){
                 while(y1<y2){           // a single column fill
@@ -406,7 +406,7 @@ class Screen {
 
         do Screen.drawLine(cx-x, cy, cx+x, cy);
         while(~(x < y)){
-            
+
             do Screen.drawLine(cx-y,cy-x , cx+y,cy-x);
             do Screen.drawLine(cx-x,cy-y , cx+x,cy-y);
             do Screen.drawLine(cx-x,cy+y , cx+x,cy+y);
