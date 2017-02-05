@@ -10,7 +10,7 @@
  */
 
 class Memory {
-	  static Array ram, heap, freelist;
+	  static Array ram, heap;
     static boolean dbg;
 
     /** Initializes the class. */
@@ -18,16 +18,14 @@ class Memory {
         let dbg = true;
 		    let ram = 0;
 		    let heap = 2048;
-		    let freelist = 2048;
-		    let heap[0] = 0;
-		    let heap[1] = 14335;
+		    let heap[1] = 16382;    // next block of heap is already across the edge
+		    let heap[0] = 14335;
         return;
     }
 
     /** Returns the RAM value at the given address. */
     function int peek(int address) {
 		    return ram[address];
-
     }
 
     /** Sets the RAM value at the given address to the given value. */
@@ -39,222 +37,51 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
-        var int sizeP2, block;
-        var int cur, next;
-        let sizeP2 = size + 2;
 
-        if (freelist = 0){
-            do Sys.error(6);
-            return null;
-        }
-        if (size < 1){
+        var Array curBase;
+
+        if(size<1){
             do Sys.error(5);
             return null;
         }
-        // allocating the first block
-        if (freelist[1] > sizeP2 + 2){ // carving a block
-            let block = freelist + freelist[1] - sizeP2;
-            let freelist[1] = freelist[1] - sizeP2;
-            let block[1] = sizeP2;
-            return block + 2;
+
+        let curBase=2048;
+        // find first block with enough space
+        while((curBase[0]<size) & (curBase < 16382)){
+            let curBase = curBase[1];
         }
-        else{                   // giving the whole block
-            if (freelist[1] > (sizeP2 - 1)){
-                let block = freelist;
-                let freelist = freelist[0];
-                return block+2;
-            }
+        // make sure we didn't leak into the screen area
+        if((curBase)>16383){
+            do Sys.error(6);
+            return null;
         }
 
-        let cur = freelist;
-        let next = cur[0];
-        while( ~(next = 0) ){
-            if(next[1] > sizeP2+2){ // carving a block
-                let block = next + next[1] - sizeP2;
-                let next[1] = next[1] - sizeP2;
-                let block[1] = sizeP2;
-                return block + 2;
-            }
-            else{
-                if(next[1] > sizeP2-1){ // giving a full block
-                    let block = next;
-                    let cur[0] = next[0];
-                    return block + 2;
-                }
-            }
-            let cur = cur[0];
-            let next = cur[0];
+        if(curBase[0]>(size+2)){
+            // write the size of the next heap
+            let curBase[size+2] = curBase[1] - size - 2;
+            let curBase[size+3] = curBase[1];
+            let curBase[1] = curBase + size + 2;
         }
-
-        do Sys.error(6);
-        return null;
+        // write 0 to signal there is no empty space in this block
+        let curBase[0]=0;
+        return curBase+2;
     }
 
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
-        if (((o[-1] > 1000) | (o[-1] < 3)) & (~(o=2048))){
-            if(dbg){ do Memory.breakpoint(o[1]);}
+        var Array cur, next;
+        let cur = o-2;
+        let next = cur[1];
+        if (next[0] = 0){       // next is still occupied
+            let cur[0] = next - cur - 2; // just write the size of the block (empty space)
         }
-
-		    let o[-2] = freelist;   // o[-2] should point to the next free place in the list
-		    let freelist = o-2;    // o is now the first free place in the list
-		    return;
-    }
-
-    function void breakpoint(int line){
+        else{                   // we can combine the blocks
+            // next[0] is the next block size, next - cur is the size we added
+            let cur[0] = next[0] + next - cur;
+            let cur[1] = next[1];
+        }
         return;
-    }
-
-    function void smartDeAlloc(int block){
-        var int cur, curSize, next, nextSize;
-        let cur = freelist;
-        let curSize = cur[1];
-        let next = cur[0];
-        let nextSize = next[1];
-        while(~(next=0)){
-            // next is the previous of block
-            if((next+nextSize) = block){
-                let next[1] = nextSize + block[1];
-                return;
-            }
-            else{               // block is the previous of next
-                if(block + block[1] = next){
-                    let block[1] = block[1] + nextSize;
-                    let block[0] = next[0];
-                    let cur[0] = block;
-                    return;
-                }
-            }
-            let cur = cur[0];   // get next node
-            let curSize = cur[1]; // update the rest
-            let next = cur[0];
-            let nextSize = next[1];
-        }
-        // if we're here then block does not have any adjacent blocks in the freelist
-        // just append it to the beggining
-        let block[0] = freelist;
-        let freelist = block-2;
-        return;
-    }
-
-
-
-
-    function int oldAlloc(int size){
-    		var Array cur, curSize, next, nextSize, block;
-		    var int sizeP2;
-
-        if(~(size>0)){
-            do Sys.error(5);
-            do Sys.halt();
-        }
-        //do Output.printString("alloc"); do Output.println();
-        if(freelist=0){          // our freelist is empty
-            do Sys.error(6);
-            do Memory.breakpoint(-2);
-            do Sys.halt();
-        }
-
-        // basic idea:
-        // if sizeP2 = totalBlockSize: allocate the whole block
-        // otherwise, require totalBlockSize >= sizeP2+2,
-        // that way we can atleast create an empty node and allocate the rest,
-        // this might create many empty nodes, but it would be pretty simple to
-        // defragment them ( simply check if node.address + size = node.next.address, and if so, combine them
-
-		    let sizeP2 = size + 2;
-		    let cur = freelist;
-        let curSize = cur[1];
-        let next = cur[0];
-        while(~(next=0)){
-            let nextSize = next[1];
-            // first, try to defragment
-            if((cur+curSize) = next){
-                if (((cur[1] > 1000) | (cur[1] < 3)) & (~(cur=2048))){
-                    if(dbg){ do Memory.breakpoint(cur[1]);}
-                }
-                let cur[1] = curSize + nextSize;
-                let cur[0] = next[0];
-                let next = cur[0];
-                let curSize = cur[1];
-            }
-            else{
-                let cur = cur[0];   // get the next node
-                let curSize = cur[1]; // update the rest of our variables accordingly
-                let next = cur[0];
-            }
-        }
-
-        // restart vars and try to allocate
-        let cur = freelist;
-        let curSize = cur[1];
-        let next = cur[0];
-
-        // try to allocate the first block
-        if(curSize>(sizeP2+2)){ // make sure we will have enough room for a non empty node
-            
-            let cur[1] = curSize - sizeP2;
-            let block = cur + curSize - sizeP2; // without the +1 it points to the end of the current block, not the start of the next
-            let block[1] = sizeP2; // write the size of the block that we are giving
-            // if(dbg){ do Memory.breakpoint(2); }
-            if (((block[1] > 1000) | (block[1] < 3)) & (~(block=2048))){
-                if(dbg){ do Memory.breakpoint(cur[1]);}
-            }
-            return block + 2;
-        }
-        else{
-            if(curSize>(sizeP2-1)){ // we can give the whole block
-                // give the whole block
-                let freelist = next;
-                // if(dbg){ do Memory.breakpoint(3); }
-                if (((cur[1] > 1000) | (cur[1] < 3)) & (~(cur=2048))){
-                    if(dbg){ do Memory.breakpoint(cur[1]);}
-                }
-
-                return cur+2;
-            }
-        }
-
-        while(~(next=0)){
-            
-            let nextSize = next[1];
-            if(nextSize>(sizeP2+2)){ // make sure that we have enough space for an empty node
-                let next[1] = nextSize - sizeP2;
-                let block = next + nextSize - sizeP2;
-                let block[1] = sizeP2; // write the size of the block that we are giving
-                // if(dbg){ do Memory.breakpoint (5);}
-                if (((block[1] > 1000) | (block[1] < 3)) & (~(block=2048))){
-                    if(dbg){ do Memory.breakpoint(block[1]);}
-                }
-                return block + 2;
-            }
-            else{
-                if(curSize>(sizeP2-1)){
-                    // set cur point to next.next and give the whole block
-                    let cur[0] = next[0];
-                    if (((next[1] > 1000) | (next[1] < 3)) & (~(next=2048))){
-                        if(dbg){ do Memory.breakpoint(next[1]);}
-                    }
-
-                    return next+2;
-                }
-            }
-            let cur = cur[0];   // get the next node
-            let curSize = cur[1]; // update the rest of our variables accordingly
-            let next = cur[0];
-        }
-
-        // if we got here that means we're at the last node of the list (cur.next = null
-        // also, we can't carve cur, we already tried that in the last iteration.
-        // so we
-        do Sys.error(6);
-        do Memory.breakpoint(-2);
-        do Sys.halt();
-        return null;
     }
 }
-
-
-

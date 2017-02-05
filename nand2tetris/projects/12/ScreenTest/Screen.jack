@@ -11,12 +11,12 @@ class Screen {
     static boolean isBlack;
     static int mod16;
     static Array twoToThe;
-    static int screen_base;
+    static Array screen;
     /** Initializes the Screen. */
     function void init() {
         let isBlack = true;
         let mod16 = 15;
-        let screen_base = 16384;
+        let screen = 16384;
 
         let twoToThe = Array.new(16);
         let twoToThe[0] = 1;
@@ -45,7 +45,8 @@ class Screen {
 
         let i = 0;
         while (i < 8192) {
-            do Memory.poke(i+screen_base, 0);
+            let screen[i] = 0;
+            // do Memory.poke(i+screen_base, 0);
             let i = i + 1;
         }
         return;
@@ -63,8 +64,16 @@ class Screen {
         var int raddr;
         var int baddr;
         // fix this with fast division
-        let raddr = screen_base + (Math.fastBinaryMulter(y, 5)) + (x/16);
-        do Memory.poke(raddr, Screen.setBitOfNum(Memory.peek(raddr), x & mod16, isBlack));
+        let raddr = (Math.fastBinaryMulter(y, 5)) + (x/16);
+        if(isBlack){
+            let screen[raddr] = screen[raddr] | twoToThe[x&mod16];
+        }
+        else{
+            let screen[raddr] = screen[raddr] & (~twoToThe[x&mod16]);
+        }
+
+        // let raddr = screen_base + (Math.fastBinaryMulter(y, 5)) + (x/16);
+        // do Memory.poke(raddr, Screen.setBitOfNum(Memory.peek(raddr), x & mod16, isBlack));
         return;
     }
 
@@ -84,7 +93,7 @@ class Screen {
         var boolean dirLeft, dirUp;
         let dx = x2-x1;
         let dy = y2-y1;
-        let raddr = screen_base + (Math.fastBinaryMulter(y1, 5)) + (x1/16);
+        let raddr = (Math.fastBinaryMulter(y1, 5)) + (x1/16);
 
         if (dy < 0){ // going down-top
             let dy = -dy;
@@ -99,38 +108,22 @@ class Screen {
             let xmod16 = x1&mod16;
             if (dirLeft){
                 if (~(xmod16=mod16)){ // not in a block start
-                    let curBlock = Memory.peek(raddr);
                     if((dx+1)<xmod16){ // can't color the rest of the block
                         if(isBlack){
-                            let curBlock = curBlock | ((twoToThe[xmod16]-1)-(twoToThe[(x2&mod16)-1]-1)); // black
+                            let screen[raddr] = screen[raddr] | ((twoToThe[xmod16]-1)-(twoToThe[(x2&mod16)-1]-1));
                         }
                         else{
-                            let curBlock = curBlock & (~((twoToThe[xmod16]-1)-(twoToThe[(x2&mod16)-1]-1))); // white
+                            let screen[raddr] = screen[raddr] & (~((twoToThe[xmod16]-1)-(twoToThe[(x2&mod16)-1]-1))); // white
                         }
-                        do Memory.poke(raddr, curBlock); // write and return
                         return;
-
-
-                        // while(xmod16<(dx+1)) { // advance until line end
-                        //     if(isBlack){
-                        //         let curBlock = curBlock | (twoToThe[16-xmod16]); // black
-                        //     }
-                        //     else{
-                        //         let curBlock = curBlock & (~twoToThe[16-xmod16]); // white
-                        //     }
-                        //     let xmod16 = xmod16 + 1;
-                        // }
-                        // do Memory.poke(raddr, curBlock); // write and return
-                        // return;
                     }
                     else{// we can color the rest of the block
                         if(isBlack){
-                            let curBlock = curBlock | (twoToThe[xmod16]-1); // black
+                            let screen[raddr] = screen[raddr] | (twoToThe[xmod16]-1); // black
                         }
                         else{
-                            let curBlock = curBlock & (~(twoToThe[xmod16]-1)); // white
+                            let screen[raddr] = screen[raddr] & (~(twoToThe[xmod16]-1)); // white
                         }
-                        do Memory.poke(raddr, curBlock);
                         let x1 = x1-xmod16-1;
                         let raddr = raddr - 1;
                     }
@@ -138,87 +131,77 @@ class Screen {
 
                 if((dx+1)<xmod16){ // we're in a block start but we cant color all the block
                     if(isBlack){
-                        let curBlock = curBlock | (twoToThe[x2&mod16]-1); // black
+                        let screen[raddr] = screen[raddr] | (-twoToThe[x2&mod16]); // black
                     }
                     else{
-                        let curBlock = curBlock & (~(twoToThe[x2&mod16]-1)); // white
+                        let screen[raddr] = screen[raddr] & (~(-twoToThe[x2&mod16])); // white
                     }
-                    do Memory.poke(raddr, curBlock); // write and return
                     return;
                 }
 
                 while((x1-15)>x2){ // if we can fill a full block, do it
-                    do Memory.poke(raddr, isBlack);
+                    let screen[raddr] = isBlack;
                     let raddr = raddr - 1;
                     let x1 = x1 - 16;
                 }
-                let curBlock = Memory.peek(raddr); // there is less than a block to go
                 if(isBlack){
-                    let curBlock = curBlock | (-twoToThe[(x2&mod16)]); // black
+                    let screen[raddr] = screen[raddr] | (-twoToThe[(x2&mod16)]); // black
                 }
                 else{
-                    let curBlock = curBlock & (~(-twoToThe[(x2&mod16)])); // white
+                    let screen[raddr] = screen[raddr] & (~(-twoToThe[(x2&mod16)])); // white
                 }
-                do Memory.poke(raddr, curBlock);
                 return;     // doneeee...
             }
             else{  // going right
 
                 if (~(xmod16=0)){ // is the same as ~(xmod16=0) and means we're not in a block start
-                    let curBlock = Memory.peek(raddr);
 
                     if((16-xmod16)>dx){ // can't color the rest of the block (do the math, it's correct)
                         if(isBlack){
-                            let curBlock = curBlock | ((twoToThe[x2&mod16]-1)-(twoToThe[xmod16-1]-1)); // black
+                            let screen[raddr] = screen[raddr] | ((twoToThe[x2&mod16]-1)-(twoToThe[xmod16-1]-1)); // black
                         }
                         else{
-                            let curBlock = curBlock & (~((twoToThe[x2&mod16]-1)-(twoToThe[xmod16-1]-1))); // white
+                            let screen[raddr] = screen[raddr] & (~((twoToThe[x2&mod16]-1)-(twoToThe[xmod16-1]-1))); // white
                         }
-                        do Memory.poke(raddr, curBlock); // write and return
                         return;
                     }
                     else{// we can color the rest of the block
                         if(isBlack){
-                            let curBlock = curBlock | (-twoToThe[xmod16-1]); // black
+                            let screen[raddr] = screen[raddr]| (-twoToThe[xmod16]); // black
                         }
                         else{
-                            let curBlock = curBlock & (~(-twoToThe[xmod16-1])); // white
+                            let screen[raddr] = screen[raddr] & (~(-twoToThe[xmod16])); // white
                         }
-                        do Memory.poke(raddr, curBlock);
                         let x1 = x1+16-xmod16;
                         let raddr = raddr + 1;
                     }
                 }
                 if((16-xmod16)>dx){ // we're in a block start but we cant color all the block
                     if(isBlack){
-                        let curBlock = curBlock | (twoToThe[x2&mod16]-1); // black
+                        let screen[raddr] = screen[raddr] | (twoToThe[x2&mod16]-1); // black
                     }
                     else{
-                        let curBlock = curBlock & (~(twoToThe[x2&mod16]-1)); // white
+                        let screen[raddr] = screen[raddr] & (~(twoToThe[x2&mod16]-1)); // white
                     }
-                    do Memory.poke(raddr, curBlock); // write and return
                     return;
                 }
                 while((x1+16)<x2){ // if we can fill a full block, do it
-                    do Memory.poke(raddr, isBlack);
+                    let screen[raddr] = isBlack;
                     let raddr = raddr + 1;
                     let x1 = x1 + 16;
                 }
-                let curBlock = Memory.peek(raddr); // there is less than a block to go
                 if(isBlack){
-                    let curBlock = curBlock | (twoToThe[(x2&mod16)]-1); // black
+                    let screen[raddr] = screen[raddr] | (twoToThe[(x2&mod16)]-1); // black
                 }
                 else{
-                    let curBlock = curBlock & (~(twoToThe[(x2&mod16)]-1)); // white
+                    let screen[raddr] = screen[raddr]& (~(twoToThe[(x2&mod16)]-1)); // white
                 }
-                do Memory.poke(raddr, curBlock);
                 return;     // doneeee...
-
             }
         }
 
 
-        let curBlock = Memory.peek(raddr);
+        let curBlock = screen[raddr];
         while ((curX < dx) | (curY < dy)){ // imagining we're going right-down but fixing it later by getting the correct block
             // draw the pixel to the block:
             if (dirLeft){
@@ -235,15 +218,14 @@ class Screen {
                 let curY = curY + 1;
                 let diff = diff + dx;
                 //write number to memory, decrease/increase raddr by 32, get new number.
-                do Memory.poke(raddr, curBlock);
+                let screen[raddr] = curBlock;
                 if (dirUp){
                     let raddr = raddr - 32;
                 }
                 else{
                     let raddr = raddr + 32;
                 }
-
-                let curBlock = Memory.peek(raddr);
+                let curBlock = screen[raddr];
             }
             else{
                 let curX = curX + 1;
@@ -252,22 +234,22 @@ class Screen {
                     // check if x%16 is 15
                     if((x1-curX)&mod16 = mod16){
                         // write number to memory, decrease raddr by 1, get new number
-                        do Memory.poke(raddr, curBlock);
+                        let screen[raddr] = curBlock;
                         let raddr = raddr - 1;
-                        let curBlock = Memory.peek(raddr);
+                        let curBlock = screen[raddr];
                     }
                 }else{
                     // check if x%16 is 0:
                     if((x1+curX)&mod16 = 0){
                         // write number to memory, increase raddr by 1, get new number
-                        do Memory.poke(raddr, curBlock);
+                        let screen[raddr] = curBlock;
                         let raddr = raddr + 1;
-                        let curBlock = Memory.peek(raddr);
+                        let curBlock = screen[raddr];
                     }
                 }
             }
         }
-        do Memory.poke(raddr, curBlock);
+        let screen[raddr] = curBlock;
         return;
     }
 
@@ -277,36 +259,46 @@ class Screen {
         var int x1mod16, painter, x2mod16, curBlock;
 
 
-
         let x1mod16 = x1&mod16;
         let x2mod16 = x2&mod16;
+        // if(250<(y2-y1)){
+            do Memory.breakpoint(y2);
+        // }
 
-        let x1 = screen_base + (Math.fastBinaryMulter(y1, 5)) // x1 is the pivot
+        let x1 = (Math.fastBinaryMulter(y1, 5)) // x1 is the pivot
             + (x1/16);
-        let y2 = x1 + (Math.fastBinaryMulter(y2-y1, 5)) + 1; // y2 is the y-axis boundary, (the plus 1 is to evaluate <= instead of <)
-        let x2 = screen_base + (Math.fastBinaryMulter(y1, 5)) // x2 is the x-axis boundary
+        do Memory.breakpoint(y2);
+        let y2 = x1 + (Math.fastBinaryMulter(y2-y1, 5))+1; // y2 is the y-axis boundary, (the plus 1 is to evaluate <= instead of <)
+        do Memory.breakpoint(y2);
+        let x2 = (Math.fastBinaryMulter(y1, 5)) // x2 is the x-axis boundary
                              + (x2/16);
         let y1 = x1;                                    // y1 is the iterator
 
+        // if(y2>8000){
+        //     do Memory.breakpoint(y2);
+        // }
+        if (x2mod16 = 15){ let x2mod16 = -1; }
+        else{ let x2mod16 = twoToThe[x2mod16+1]-1; }
 
-        if (~(x1mod16=0)){ //  means we're not in a block start
+        if(x1mod16 = 0){let x1mod16 = -1;}
+        else{let x1mod16 = -twoToThe[x1mod16]; }
+
+        if (~(x1mod16=-1)){ //  means we're not in a block start
             if(x1=x2){ // x1 and x2 are in the same block so we cant fill the whole block
                 if(isBlack){
-                    let painter = ((twoToThe[x2mod16]-1)-(twoToThe[x1mod16-1]-1));
+                    let painter = x1mod16 & x2mod16;
+                    // let painter = ((twoToThe[x2mod16]-1)-(twoToThe[x1mod16-1]-1));
                     while (y1 < y2){
-                        let curBlock = Memory.peek(y1);
-                        let curBlock = curBlock | painter; // black
-                        do Memory.poke(y1, curBlock);
+                        let screen[y1] = screen[y1] | painter;
                         let y1 = y1 + 32;
                     }
                     return;
                 }
                 else{
-                    let painter = (~(twoToThe[x2mod16]-1)-(twoToThe[x1mod16-1]-1));
+                    // let painter = ~((twoToThe[x2mod16]-1)-(twoToThe[x1mod16-1]-1));
+                    let painter = ~(x1mod16 & x2mod16);
                     while (y1 < y2){
-                        let curBlock = Memory.peek(y1);
-                        let curBlock = curBlock & painter; // black
-                        do Memory.poke(y1, curBlock);
+                        let screen[y1] = screen[y1] & painter;
                         let y1 = y1 + 32;
                     }
                     return;
@@ -314,20 +306,18 @@ class Screen {
             }
             else{               // color the whole block
                 if(isBlack){
-                    let painter = (-twoToThe[x1mod16-1]);
+                    // let painter = (-twoToThe[x1mod16-1]);
+                    let painter = x1mod16;
                     while (y1 < y2){
-                        let curBlock = Memory.peek(y1);
-                        let curBlock = curBlock | painter; // black
-                        do Memory.poke(y1, curBlock);
+                        let screen[y1] = screen[y1] | painter;
                         let y1 = y1 + 32;
                     }
                 }
                 else{
-                    let painter = ~(-twoToThe[x1mod16-1]);
+                    // let painter = ~(-twoToThe[x1mod16-1]);
+                    let painter = ~x1mod16;
                     while (y1 < y2){
-                        let curBlock = Memory.peek(y1);
-                        let curBlock = curBlock & painter; // black
-                        do Memory.poke(y1, curBlock);
+                        let screen[y1] = screen[y1] & painter;
                         let y1 = y1 + 32;
                     }
                 }
@@ -349,17 +339,13 @@ class Screen {
         while(x1<x2){           // going through all columns
             if(isBlack){
                 while(y1<y2){           // a single column fill
-                    let curBlock = Memory.peek(y1);
-                    let curBlock = curBlock | painter; // black
-                    do Memory.poke(y1, curBlock);
+                    let screen[y1] = screen[y1] | painter;
                     let y1 = y1 + 32;
                 }
             }
             else{
                 while(y1<y2){
-                    let curBlock = Memory.peek(y1);
-                    let curBlock = curBlock & painter; // white
-                    do Memory.poke(y1, curBlock);
+                    let screen[y1] = screen[y1] & painter;
                     let y1 = y1 + 32;
                 }
             }
@@ -370,20 +356,18 @@ class Screen {
 
         // fill th last block
         if(isBlack){
-            let painter = (twoToThe[x2mod16]-1);
+            // let painter = (twoToThe[x2mod16]-1);
+            let painter = x2mod16;
             while(y1<y2){           // a single column full
-                let curBlock = Memory.peek(y1);
-                let curBlock = curBlock | painter; // black
-                do Memory.poke(y1, curBlock);
+                let screen[y1] = screen[y1] | painter;
                 let y1 = y1 + 32;
             }
         }
         else{
-            let painter = (~(twoToThe[x2mod16]-1));
+            // let painter = ~((twoToThe[x2mod16]-1));
+            let painter = ~x2mod16;
             while(y1<y2){           // a single column full
-                let curBlock = Memory.peek(y1);
-                let curBlock = curBlock & painter; // white
-                do Memory.poke(y1, curBlock);
+                let screen[y1] = screen[y1] & painter;
                 let y1 = y1 + 32;
             }
         }

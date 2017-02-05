@@ -1,0 +1,144 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * Memory operations library.
+ */ 
+class Memory {
+    // memory arrays
+    static Array memory;
+    static Array freeList;
+    static Array memoryBottom;
+    // memory related constants.
+    static int blockLength; 
+    static int heapEnd;
+    static int heapStart;
+    // memory related variables
+    static int nextFree;
+    static int len;
+    static int heapSize;
+    /** Initializes memory parameters. */
+    function void init() {
+        
+        let heapSize = 14336;
+        let heapStart = 2048;
+        let heapEnd = 16384;
+        let freeList = heapStart;
+        let len = 0;
+        let nextFree = 1;
+        let freeList[len] = heapSize;
+        let freeList[nextFree] = null; 
+        let blockLength = -1;
+
+        let memory = 0;
+        return;
+    }
+
+    
+    function int peek(int addr) {
+        return memory[addr];
+    }
+
+    function void poke(int addr, int value) {
+        let memory[addr] = value;
+        return;
+    }
+
+  function int alloc(int size) {
+
+        var Array foundBlock,nextBlock,result;
+        let foundBlock = Memory.bestFit(size);
+        let result = foundBlock + 1;
+
+        if(~(foundBlock = null)){
+            if(foundBlock[len] > (size + 3)){
+                let nextBlock = foundBlock + size + 1;
+                let nextBlock[nextFree] = foundBlock[nextFree];
+                let nextBlock[len] = foundBlock[len] - size - 1;
+                let result[blockLength] = size + 1;
+                let freeList = nextBlock;
+            }else{
+                let nextBlock = foundBlock[nextFree];
+                let result[blockLength] = foundBlock[len];
+            }
+            let foundBlock = nextBlock;
+        }
+        return result;
+    }
+
+    function void deAlloc(int object) {
+        var Array prevBlock,nextBlock;
+        var int size;
+
+        let size = object[blockLength];
+        let object = object - 1;
+        let prevBlock = Memory.findPrevFree(object);
+
+        if(prevBlock = null){
+            let object[len] = size;
+            let object[nextFree] = freeList;
+            let freeList = object;
+        }else{
+            if((prevBlock + prevBlock[len]) = object){
+                let prevBlock[len] = prevBlock[len] + size;
+                let object = prevBlock;
+            }else{
+                let object[len] = size;
+                let object[nextFree] = prevBlock[nextFree];
+                let prevBlock[nextFree] = object;
+            }
+        }
+
+        if((object + object[len]) = object[nextFree]){
+            let nextBlock = object[nextFree];
+            let object[len] = object[len] + nextBlock[ len];
+            let object[nextFree] = nextBlock[nextFree];
+        }
+
+        return;
+    }    
+
+    function Array bestFit(int size){
+        var int bestSize,curSize;
+        var Array curBlock, bestBlock;
+
+        let bestBlock = null;
+        let bestSize = heapSize;
+        let curBlock = freeList;
+
+        if(curBlock[nextFree] = null){
+            return curBlock;
+        }
+
+        while(~(curBlock = null)){
+            let curSize = curBlock[len] - 1;
+            if(~(curSize < size) & (curSize < bestSize)){
+                let bestBlock = curBlock;
+                let bestSize = curSize;
+            }
+
+            let curBlock = curBlock[nextFree];
+        }
+
+        return bestBlock;
+    }
+   
+    function Array findPrevFree(int object){
+        var Array prevBlock;
+
+        if(freeList > object){
+            return null;
+        }
+
+        let prevBlock = freeList;
+
+        while(~(prevBlock[nextFree] = null) & (prevBlock[nextFree] < object)){
+            let prevBlock = prevBlock[nextFree];
+        }
+
+        return prevBlock;
+
+    }
+}

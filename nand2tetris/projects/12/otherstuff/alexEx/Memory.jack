@@ -1,0 +1,349 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * Memory operations library.
+ */ 
+class Memory {
+
+    
+    
+        static int stat0;
+        static int heap_end;
+        static int heap_start;
+        static int heap_size;
+        // static int stat3;
+        static int stat4;
+        static int stat5;
+        
+        static int stat6;
+        static int free_list_pointer;
+
+    /** Initializes memory parameters. 
+    Initialization:
+    - - -
+    freeList = heapBase
+    freeList.length = heapLength
+    freeList.next = 0
+    */
+
+    function void init() {
+        
+        let stat0 = 0;
+        let stat0[2048]=14334;
+        let stat0[2049]=2050;
+        // let free_list_pointer = 2048;
+        // let heap_end = 16383;
+        // let heap_start = 2048;
+        // let heap_size = heap_end - heap_start - 2;
+        // define size of the first block
+        // let stat0[heap_start]=heap_size;
+        // define pointer to next as null
+        // let stat0[heap_start+1]=0;
+        return;
+
+
+    }
+
+    /** Returns the value of the main memory at the given address. */
+    function int peek(int address) {
+        return stat0[address];
+    }
+
+    /** Sets the value of the main memory at this address
+     *  to the given value. */
+    function void poke(int address, int value) {
+        let stat0[address]=value;
+        return;
+    }
+
+    /** finds and allocates from the heap a memory block of the
+     *  specified size and returns a reference to its base address.
+    - - -// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * Memory operations library.
+ */ 
+class Memory {
+
+    
+    
+        static int stat0;
+        static int heap_end;
+        static int heap_start;
+        static int heap_size;
+        // static int stat3;
+        static int stat4;
+        static int stat5;
+        
+        static int stat6;
+        static int free_list_pointer;
+
+    /** Initializes memory parameters. 
+    Initialization:
+    - - -
+    freeList = heapBase
+    freeList.length = heapLength
+    freeList.next = 0
+    */
+
+    function void init() {
+        
+        let stat0 = 0;
+        let stat0[2048]=14334;
+        let stat0[2049]=2050;
+        // let free_list_pointer = 2048;
+        // let heap_end = 16383;
+        // let heap_start = 2048;
+        // let heap_size = heap_end - heap_start - 2;
+        // define size of the first block
+        // let stat0[heap_start]=heap_size;
+        // define pointer to next as null
+        // let stat0[heap_start+1]=0;
+        return;
+
+
+    }
+
+    /** Returns the value of the main memory at the given address. */
+    function int peek(int address) {
+        return stat0[address];
+    }
+
+    /** Sets the value of the main memory at this address
+     *  to the given value. */
+    function void poke(int address, int value) {
+        let stat0[address]=value;
+        return;
+    }
+
+    /** finds and allocates from the heap a memory block of the
+     *  specified size and returns a reference to its base address.
+    - - -
+    Search freeList using best-fit or first-fit heuristics
+    to obtain a segment with segment.length > size
+    If no such segment is found, return failure
+    (or attempt defragmentation)
+    block = needed part of the found segment
+    (or all of it, if the segment remainder is too small)
+    Update freeList to reflect the allocation
+    block[1] = size +1 // Remember block size, for de-allocation
+    Return block */
+
+    function int alloc(int size) {
+        //We use first fit.
+        var int loc0;
+        if(size<1){
+            do Sys.error(5);
+        }
+        let loc0=2048;
+        // let prev_addr = -1; // at first previous addres is invlid
+        // let cur_addr=free_list_pointer;
+        while(loc0[0]<size){
+            let loc0 = loc0[1];
+        }
+
+        if((loc0+size)>16379){
+            do Sys.error(6);
+        }
+
+        if(loc0[0]>(size+2))
+        {
+            let loc0[size+2]=(loc0[0]-size-2);
+            if(loc0[1]=(loc0+2))
+            {
+                let loc0[(size+3)]=loc0+size+4;
+            } else {
+                let loc0[(size+3)]=loc0[1];
+            }
+            let loc0[1]=loc0+size+2;
+        }
+        let loc0[0]=0;
+
+
+
+        return loc0+2;
+    }
+
+    /** De-allocates the given object and frees its space.
+    segment = object-1
+    segment.length = object[-1]
+    Insert segment into the freeList
+    */
+    function void deAlloc(int object) {
+
+        var int loc0,lcl1;
+
+        let loc0=object-2;
+        let lcl1=loc0[1];
+        if(lcl1[0]=0)
+        {
+            let loc0[0]=loc0[1]-loc0-2;
+        } else {
+            let loc0[0]=(loc0[1]-loc0)+lcl1[0];
+            if(lcl1[1]=(lcl1+2))
+            {
+                let loc0[1]=loc0+2;
+            } else {
+                let loc0[1]=lcl1[1];
+            }
+        }
+
+        // do Memory.poke(object,free_list_pointer);
+        // let free_list_pointer = object-1;
+        return;
+    }    
+}
+    Search freeList using best-fit or first-fit heuristics
+    to obtain a segment with segment.length > size
+    If no such segment is found, return failure
+    (or attempt defragmentation)
+    block = needed part of the found segment
+    (or all of it, if the segment remainder is too small)
+    Update freeList to reflect the allocation
+    block[1] = size +1 // Remember block size, for de-allocation
+    Return block */
+
+    function int alloc(int size)// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * Memory operations library.
+ */ 
+class Memory {
+
+    
+    
+        static int stat0;
+        static int heap_end;
+        static int heap_start;
+        static int heap_size;
+        // static int stat3;
+        static int stat4;
+        static int stat5;
+        
+        static int stat6;
+        static int free_list_pointer;
+
+    /** Initializes memory parameters. 
+    Initialization:
+    - - -
+    freeList = heapBase
+    freeList.length = heapLength
+    freeList.next = 0
+    */
+
+    function void init() {
+        
+        let stat0 = 0;
+        let stat0[2048]=14334;
+        let stat0[2049]=2050;
+        // let free_list_pointer = 2048;
+        // let heap_end = 16383;
+        // let heap_start = 2048;
+        // let heap_size = heap_end - heap_start - 2;
+        // define size of the first block
+        // let stat0[heap_start]=heap_size;
+        // define pointer to next as null
+        // let stat0[heap_start+1]=0;
+        return;
+
+
+    }
+
+    /** Returns the value of the main memory at the given address. */
+    function int peek(int address) {
+        return stat0[address];
+    }
+
+    /** Sets the value of the main memory at this address
+     *  to the given value. */
+    function void poke(int address, int value) {
+        let stat0[address]=value;
+        return;
+    }
+
+    /** finds and allocates from the heap a memory block of the
+     *  specified size and returns a reference to its base address.
+    - - -
+    Search freeList using best-fit or first-fit heuristics
+    to obtain a segment with segment.length > size
+    If no such segment is found, return failure
+    (or attempt defragmentation)
+    block = needed part of the found segment
+    (or all of it, if the segment remainder is too small)
+    Update freeList to reflect the allocation
+    block[1] = size +1 // Remember block size, for de-allocation
+    Return block */
+
+    function int alloc(int size) {
+        //We use first fit.
+        var int loc0;
+        if(size<1){
+            do Sys.error(5);
+        }
+        let loc0=2048;
+        // let prev_addr = -1; // at first previous addres is invlid
+        // let cur_addr=free_list_pointer;
+        while(loc0[0]<size){
+            let loc0 = loc0[1];
+        }
+
+        if((loc0+size)>16379){
+            do Sys.error(6);
+        }
+
+        if(loc0[0]>(size+2))
+        {
+            let loc0[size+2]=(loc0[0]-size-2);
+            if(loc0[1]=(loc0+2))
+            {
+                let loc0[(size+3)]=loc0+size+4;
+            } else {
+                let loc0[(size+3)]=loc0[1];
+            }
+            let loc0[1]=loc0+size+2;
+        }
+        let loc0[0]=0;
+
+
+
+        return loc0+2;
+    }
+
+    /** De-allocates the given object and frees its space.
+        segment = object-1
+        segment.length = object[-1]
+        Insert segment into the freeList
+    */
+    function void deAlloc(int object) {
+
+        var int loc0,lcl1;
+
+        let loc0=object-2;
+        let lcl1=loc0[1];
+        if(lcl1[0]=0)
+        {
+            let loc0[0]=loc0[1]-loc0-2;
+        } else {
+            let loc0[0]=(loc0[1]-loc0)+lcl1[0];
+            if(lcl1[1]=(lcl1+2))
+            {
+                let loc0[1]=loc0+2;
+            } else {
+                let loc0[1]=lcl1[1];
+            }
+        }
+
+        // do Memory.poke(object,free_list_pointer);
+        // let free_list_pointer = object-1;
+        return;
+    }
+}

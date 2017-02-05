@@ -1,0 +1,64 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Sys.jack
+
+/**
+ * A library that supports various program execution services.
+ */
+class Sys {
+
+    /** Performs all the initializations required by the OS. */
+    function void init() {
+		    do Memory.init();
+		    do Math.init();
+		    do Screen.init();
+		    do Keyboard.init();
+		    do Output.init();
+		    do Main.main();
+        do Sys.halt();
+        return;
+    }
+
+    /** Halts the program execution. */
+    function void halt() {
+		    while(true){}
+		    return;
+    }
+
+    /** Waits approximately duration milliseconds and returns.  */
+    function void wait(int duration) {
+		    var int i,timeFactor,j;
+        if (duration<0){
+            do Sys.error(1);
+            do Sys.halt();
+            return;
+        }
+        let timeFactor = 196;
+		    while(i < duration){
+			      if(j = timeFactor){
+				        let j = 0;
+                let i = i + 1;
+			      }
+            let j = j + 1;
+        }
+        return;
+    }
+
+    /** Displays the given error code in the form "ERR<errorCode>",
+     *  and halts the program's execution. */
+    function void error(int errorCode) {
+        do Memory.poke(9,errorCode);
+        do Output.moveCursor(15, 0);
+        // do Output.cursorLeft();
+        // do Output.cursorLeft();
+        // do Output.cursorLeft();
+        // do Output.cursorLeft();
+
+        do Output.drawCharArr(Output.getMap(69));
+        do Output.drawCharArr(Output.getMap(82));
+        do Output.drawCharArr(Output.getMap(82));
+		    do Output.drawCharArr(Output.getMap(errorCode));
+        return; 
+    }
+}
