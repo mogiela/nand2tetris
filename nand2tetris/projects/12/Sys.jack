@@ -48,10 +48,12 @@ class Sys {
     /** Displays the given error code in the form "ERR<errorCode>",
      *  and halts the program's execution. */
     function void error(int errorCode) {
-        do Output.cursorLeft();
-        do Output.cursorLeft();
-        do Output.cursorLeft();
-        do Output.cursorLeft();
+        do Memory.poke(9,errorCode);
+        do Output.moveCursor(15, 0);
+        // do Output.cursorLeft();
+        // do Output.cursorLeft();
+        // do Output.cursorLeft();
+        // do Output.cursorLeft();
 
         do Output.drawCharArr(Output.getMap(69));
         do Output.drawCharArr(Output.getMap(82));
